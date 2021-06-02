@@ -250,8 +250,6 @@ unittest {
 
 	Namelist namelist = {
 		environment_in: {
-			nbObserverContainers: 1,
-			nbSourceContainers: 1,
 			pressureFolderName: "/",
 			SPLFolderName: "/",
 			sigmaFolderName: "/",

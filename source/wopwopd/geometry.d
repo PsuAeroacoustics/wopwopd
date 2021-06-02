@@ -10,6 +10,7 @@ import std.array;
 import std.conv;
 import std.exception;
 import std.range;
+import std.stdio;
 import std.string;
 import std.traits;
 
@@ -217,24 +218,37 @@ struct ConstantGeometryData {
 }
 
 struct GeometryFileHandle {
-	MPI_File file_handle;
-	MPI_Info info;
-	Datatype etype;
-	Datatype[] node_filetype;
-	Datatype[] normal_filetype;
-	size_t[] x_node_displacement;
-	size_t[] y_node_displacement;
-	size_t[] z_node_displacement;
-	size_t[] x_normal_displacement;
-	size_t[] y_normal_displacement;
-	size_t[] z_normal_displacement;
-	size_t[] zone_data_size;
-	size_t total_data_size;
-	Group comm_group;
-	Comm comm;
+	static if(have_mpi) {
+		MPI_File file_handle;
+		MPI_Info info;
+		Datatype etype;
+		Datatype[] node_filetype;
+		Datatype[] normal_filetype;
+		size_t[] x_node_displacement;
+		size_t[] y_node_displacement;
+		size_t[] z_node_displacement;
+		size_t[] x_normal_displacement;
+		size_t[] y_normal_displacement;
+		size_t[] z_normal_displacement;
+		size_t[] zone_data_size;
+		size_t total_data_size;
+		Group comm_group;
+		Comm comm;
+	} else {
+		File file;
+		// May need more things
+	}
 }
 
-@trusted GeometryFileHandle create_geometry_file(GeomFileType)(ref Comm comm, auto ref GeomFileType patch_file, string filename, size_t[] rank_node_count, size_t[] rank_normal_count) {
+@trusted GeometryFileHandle create_geometry_file(GeomFileType)(auto ref GeomFileType patch_file, string filename, size_t[] rank_node_count, size_t[] rank_normal_count) {
+	GeometryFileHandle file;
+
+	// Fill in
+
+	return file;
+}
+
+static if(have_mpi) @trusted GeometryFileHandle create_geometry_file(GeomFileType)(ref Comm comm, auto ref GeomFileType patch_file, string filename, size_t[] rank_node_count, size_t[] rank_normal_count) {
 	GeometryFileHandle file;
 
 	file.etype = to_mpi_type!float;
@@ -363,7 +377,7 @@ struct GeometryFileHandle {
 	return file;
 }
 
-@trusted void append_geometry_data(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
+static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
 	static if(is(GeometryData == ConstantGeometryData)) {
 
 		if(patch_file.comm_group.rank == MPI_UNDEFINED) {
@@ -423,4 +437,28 @@ struct GeometryFileHandle {
 	} else {
 		static assert("Cannot export non-constant patch data");
 	}
+}
+
+@trusted private void append_geometry_data_serial(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
+	static if(is(GeometryData == ConstantGeometryData)) {
+		// Fill in.
+	} else {
+		static assert("Cannot export non-constant patch data");
+	}
+}
+
+@trusted void append_geometry_data(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
+	static if(have_mpi) {
+		append_geometry_data_mpi(patch_file, patch_data, zone);
+	} else {
+		append_geometry_data_serial(patch_file, patch_data, zone);
+	}
+}
+
+unittest {
+	auto f = File("test_binary.bin", "wb");
+	int[1] fourty_two = 42;
+
+	f.rawWrite(fourty_two);
+	f.close;
 }

@@ -235,6 +235,23 @@ struct LoadingFileT(LoadingType loading_type) {
 	Comm comm;
 }
 
+
+@trusted LoadingFileT!(LoadingFileType.loading_type) open_loading_file_append(LoadingFileType)(auto ref LoadingFileType loading_file, string filename, int rank_loading_count) {
+	LoadingFileT!(LoadingFileType.loading_type) file;
+	
+	// Fill in.
+
+	return file;
+}
+
+@trusted LoadingFileT!(LoadingFileType.loading_type) create_loading_file(LoadingFileType)(auto ref LoadingFileType loading_file, string filename, int rank_loading_count) {
+	LoadingFileT!(LoadingFileType.loading_type) file;
+
+	// Fill in.
+	
+	return file;
+}
+
 /++
  +	MPI collective call, shared serial call. All MPI processes, but only 1 thread per process,
  +	need to call this to get added to MPI file handle. Only the root rank writes the header information.
@@ -609,7 +626,7 @@ struct LoadingFileT(LoadingType loading_type) {
  +	it process local loading data. This uses MPI collective writing calls for increased throughput.
  +	Only the root rank will write the time stamp.
  +/
-void append_loading_data(LoadingFile, LoadingData)(ref LoadingFile file, auto ref LoadingData loading_data) {
+static if(have_mpi) private void append_loading_data_mpi(LoadingFile, LoadingData)(ref LoadingFile file, auto ref LoadingData loading_data) {
 
 	if(file.comm_group.rank == MPI_UNDEFINED) {
 		return;
@@ -660,6 +677,18 @@ void append_loading_data(LoadingFile, LoadingData)(ref LoadingFile file, auto re
 		enforce(ret == MPI_SUCCESS, "Failed to write all");
 
 		file.x_loading_displacement += file.total_data_size;
+	}
+}
+
+private void append_loading_data_serial(LoadingFile, LoadingData)(ref LoadingFile file, auto ref LoadingData loading_data) {
+	// Fill in.
+}
+
+void append_loading_data(LoadingFile, LoadingData)(ref LoadingFile file, auto ref LoadingData loading_data) {
+	static if(have_mpi) {
+		append_loading_data_mpi(file, loading_data);
+	} else {
+		append_loading_data_serial(file, loading_data);
 	}
 }
 

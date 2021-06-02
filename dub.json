@@ -8,18 +8,19 @@
 		"mpid": "~master",
 		"numd": "~>0.1.0"
 	},
-	"lflags": ["-lmpi"],
     "buildTypes": {
 		"unittest": {
 			"buildOptions": ["debugMode", "debugInfo", "unittests"],
-			"versions": ["openmpi"]
+			"versions": ["openmpi"],
+			"lflags": ["-lmpi"]
 		},
 		"debug": {
 			"buildOptions": ["debugMode", "debugInfo"]
 		},
 		"debug-openmpi": {
 			"buildOptions": ["debugMode", "debugInfo"],
-			"versions": ["openmpi"]
+			"versions": ["openmpi"],
+			"lflags": ["-lmpi"]
 		},
 		"release": {
 			"buildOptions": ["releaseMode", "inline", "debugInfo", "optimize"],

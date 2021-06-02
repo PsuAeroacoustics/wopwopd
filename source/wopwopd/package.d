@@ -60,24 +60,32 @@ enum int COMMENT_STR_LEN = 1024;
 enum int UNITS_STR_LEN = 32;
 
 @trusted void serial_write_struct(S)(MPI_File file, auto ref S s) {
-	alias field_types = Fields!S;
-
 	import std.meta : staticMap;
 	template to_string(alias m) {
 		enum string to_string = m.stringof;
 	}
 
-	MPI_Status status;
-	int ret = MPI_SUCCESS;
+	static if(have_mpi) {
+		alias field_types = Fields!S;
 
-	static foreach(m_idx, member; staticMap!(to_string, getSymbolsByUDA!(S, wopwop))) {
-		static if(isStaticArray!(field_types[m_idx])) {
-			mixin("ret = MPI_File_write(file, &s."~member~"[0], field_types[m_idx].length, to_mpi_type!(ForeachType!(field_types[m_idx])), &status);");
-		} else static if(isDynamicArray!(field_types[m_idx])) {
-			mixin("ret = MPI_File_write(file, s."~member~".ptr, s."~member~".length.to!int, to_mpi_type!(ForeachType!(field_types[m_idx])), &status);");
-		} else {
-			mixin("ret = MPI_File_write(file, &s."~member~", 1, to_mpi_type!(field_types[m_idx]), &status);");
+		MPI_Status status;
+		int ret = MPI_SUCCESS;
+
+		static foreach(m_idx, member; staticMap!(to_string, getSymbolsByUDA!(S, wopwop))) {
+			static if(isStaticArray!(field_types[m_idx])) {
+				mixin("ret = MPI_File_write(file, &s."~member~"[0], field_types[m_idx].length, to_mpi_type!(ForeachType!(field_types[m_idx])), &status);");
+			} else static if(isDynamicArray!(field_types[m_idx])) {
+				mixin("ret = MPI_File_write(file, s."~member~".ptr, s."~member~".length.to!int, to_mpi_type!(ForeachType!(field_types[m_idx])), &status);");
+			} else {
+				mixin("ret = MPI_File_write(file, &s."~member~", 1, to_mpi_type!(field_types[m_idx]), &status);");
+			}
+			enforce(ret == MPI_SUCCESS, "Failed to write "~member);
 		}
-		enforce(ret == MPI_SUCCESS, "Failed to write "~member);
+	} else {
+		// Run serial code.
+
+		static foreach(m_idx, member; staticMap!(to_string, getSymbolsByUDA!(S, wopwop))) {
+			mixin("s."~member~";");
+		}
 	}
 }

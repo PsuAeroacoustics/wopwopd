@@ -5,10 +5,8 @@
 	"authors": ["Robert F. Rau II"],
 	"targetType": "library",
 	"dependencies": {
-		"albm": "~master",
-		"numd": "~>0.1.0",
-		"dyaml": "~>0.8.3",
-		"dxml": "~>0.4.3"
+		"mpid": "~master",
+		"numd": "~>0.1.0"
 	},
 	"lflags": ["-lmpi"],
     "buildTypes": {

@@ -1,7 +1,7 @@
 module wopwopd.loading;
 
-import albm.mpi;
-import albm.mpi : Group, include, group;
+import mpid;
+import mpid : Group, include, group;
 
 import numd.linearalgebra.matrix;
 

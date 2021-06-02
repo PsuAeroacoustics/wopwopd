@@ -1,6 +1,6 @@
 module wopwopd;
 
-import albm.mpi;
+import mpid;
 
 public import wopwopd.geometry;
 public import wopwopd.loading;

@@ -455,6 +455,13 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 	}
 }
 
+void close_geometry_file(ref GeometryFileHandle file) {
+	if(file.comm_group.rank != MPI_UNDEFINED) {
+		auto ret = MPI_File_close(&file.file_handle);
+		enforce(ret == MPI_SUCCESS, "Failed to close wopwop loading file with error: "~ret.to!string);
+	}
+}
+
 unittest {
 	auto f = File("test_binary.bin", "wb");
 	int[1] fourty_two = 42;

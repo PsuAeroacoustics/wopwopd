@@ -16,6 +16,15 @@ alias OptionalSize = Nullable!size_t;
 alias OptionalString = Nullable!string;
 alias OptionalBool = Nullable!bool;
 
+struct Casename {
+	OptionalString globalFolderName;
+	OptionalString caseNameFile;
+}
+
+struct CaseList {
+	Casename[] cases;
+}
+
 struct Namelist {
 	EnvironmentIn environment_in;
 	EnvironmentConstants environment_constants;
@@ -194,6 +203,15 @@ void write_namelist_struct(F, S)(auto ref F file, auto ref S s) {
 	}}
 
 	file.writeln("/");
+}
+
+void write_caselist(ref CaseList case_list, string directory) {
+	import std.path : buildPath;
+	auto filename = directory.buildPath("cases.nam");
+	auto file = File(filename, "w");
+	foreach(ref c; case_list.cases) {
+		file.write_namelist_struct(c);
+	}
 }
 
 void write_namelist(ref Namelist namelist, string filename) {

@@ -11,6 +11,7 @@ import numd.linearalgebra.matrix;
 import std.conv;
 import std.exception;
 import std.traits;
+import std.stdio : File;
 
 enum wopwop;
 
@@ -59,6 +60,10 @@ enum LoadingDatatype : int {
 enum int COMMENT_STR_LEN = 1024;
 enum int UNITS_STR_LEN = 32;
 
+template to_string(alias m) {
+	enum string to_string = m.stringof;
+}
+
 @trusted void serial_write_struct(S)(MPI_File file, auto ref S s) {
 	import std.meta : staticMap;
 	template to_string(alias m) {
@@ -82,10 +87,20 @@ enum int UNITS_STR_LEN = 32;
 			enforce(ret == MPI_SUCCESS, "Failed to write "~member);
 		}
 	} else {
+		assert(0, "Need MPI to run MPI write");
 		// Run serial code.
 
-		static foreach(m_idx, member; staticMap!(to_string, getSymbolsByUDA!(S, wopwop))) {
-			mixin("s."~member~";");
-		}
 	}
+}
+
+@trusted void serial_write_struct(S)(File file, auto ref S s) {
+	import std.meta : staticMap;
+	
+	//file.rawWrite(/+data+/);
+
+	static foreach(m_idx, member; staticMap!(to_string, getSymbolsByUDA!(S, wopwop))) {{
+		//pragma(msg, "member: "~member);
+		//file.rawWrite
+		mixin("auto v = s."~member~";");
+	}}
 }

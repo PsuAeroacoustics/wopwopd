@@ -218,7 +218,7 @@ struct ConstantGeometryData {
 }
 
 struct GeometryFileHandle {
-	static if(have_mpi) {
+	//static if(have_mpi) {
 		MPI_File file_handle;
 		MPI_Info info;
 		Datatype etype;
@@ -234,16 +234,27 @@ struct GeometryFileHandle {
 		size_t total_data_size;
 		Group comm_group;
 		Comm comm;
-	} else {
+	//} else {
 		File file;
 		// May need more things
-	}
+	//}
 }
 
 @trusted GeometryFileHandle create_geometry_file(GeomFileType)(auto ref GeomFileType patch_file, string filename, size_t[] rank_node_count, size_t[] rank_normal_count) {
 	GeometryFileHandle file;
 
+	file.file = File(filename, "wb");
 	// Fill in
+
+
+	file.file.serial_write_struct(patch_file.file_header);
+	/++
+		file.file_handle.serial_write_struct(patch_file.file_header);
+
+		foreach(ref zone_header; patch_file.zone_headers) {
+			file.file_handle.serial_write_struct(zone_header);
+		}
+	+/
 
 	return file;
 }
@@ -909,8 +920,7 @@ unittest {
 	// And we need to shutdown mpi after we are done with it.
 	mpi_shutdown;
 
-
-
+	auto serial_geometry_file = create_geometry_file(geometry, "serial_geom.dat", [blade_geom.x_nodes.length, lifting_line_geometry_data.x_nodes.length], [blade_geom.x_normals.length, lifting_line_geometry_data.x_normals.length]);
 	/+
 
 		You will need to create and fill in these function call that write the same data, but not using the MPI file calls and instead using the file IO stuff from std.stdio

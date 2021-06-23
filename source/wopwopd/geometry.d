@@ -234,6 +234,7 @@ struct GeometryFileHandle {
 		size_t total_data_size;
 		Group comm_group;
 		Comm comm;
+		bool is_serial;
 	//} else {
 		File file;
 		// May need more things
@@ -243,6 +244,7 @@ struct GeometryFileHandle {
 @trusted GeometryFileHandle create_geometry_file(GeomFileType)(auto ref GeomFileType patch_file, string filename, size_t[] rank_node_count, size_t[] rank_normal_count) {
 	GeometryFileHandle file;
 
+	file.is_serial = true;
 	file.file = File(filename, "wb");
 	// Fill in
 
@@ -262,6 +264,7 @@ struct GeometryFileHandle {
 static if(have_mpi) @trusted GeometryFileHandle create_geometry_file(GeomFileType)(ref Comm comm, auto ref GeomFileType patch_file, string filename, size_t[] rank_node_count, size_t[] rank_normal_count) {
 	GeometryFileHandle file;
 
+	file.is_serial = false;
 	file.etype = to_mpi_type!float;
 
 	// First we create a group and communicator for those ranks that actually have
@@ -459,7 +462,7 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 }
 
 @trusted void append_geometry_data(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
-	static if(have_mpi) {
+	if(patch_file.is_serial) {
 		append_geometry_data_mpi(patch_file, patch_data, zone);
 	} else {
 		append_geometry_data_serial(patch_file, patch_data, zone);
@@ -467,7 +470,7 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 }
 
 void close_geometry_file(ref GeometryFileHandle file) {
-	static if(have_mpi) {
+	if(file.is_serial) {
 		if(file.comm_group.rank != MPI_UNDEFINED) {
 			auto ret = MPI_File_close(&file.file_handle);
 			enforce(ret == MPI_SUCCESS, "Failed to close wopwop loading file with error: "~ret.to!string);

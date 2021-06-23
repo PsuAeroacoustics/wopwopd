@@ -87,9 +87,7 @@ template to_string(alias m) {
 			enforce(ret == MPI_SUCCESS, "Failed to write "~member);
 		}
 	} else {
-		assert(0, "Need MPI to run MPI write");
-		// Run serial code.
-
+		assert(0, "Need MPI to run MPI_File_write");
 	}
 }
 

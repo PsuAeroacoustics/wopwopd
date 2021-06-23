@@ -8,10 +8,18 @@
 		"mpid": "~master",
 		"numd": "~>0.1.0"
 	},
+	"configurations": [
+		{
+			"name": "unittest",
+			"targetName": "wopwopd-test-library",
+			"targetType": "executable"
+		}
+	],
     "buildTypes": {
 		"unittest": {
 			"buildOptions": ["debugMode", "debugInfo", "unittests"],
 			"versions": ["openmpi"],
+			"dflags": ["-main"],
 			"lflags": ["-lmpi"]
 		},
 		"debug": {

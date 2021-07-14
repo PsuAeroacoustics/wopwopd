@@ -100,5 +100,9 @@ template to_string(alias m) {
 		//pragma(msg, "member: "~member);
 		//file.rawWrite
 		mixin("auto v = s."~member~";");
+		file.rawWrite([v]);
+	pragma(msg, member);
+
+
 	}}
 }

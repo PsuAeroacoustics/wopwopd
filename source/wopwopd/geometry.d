@@ -177,7 +177,6 @@ struct PeriodicUnstructuredGeometryHeader {
 		connectivity[] = _connectivity[];
 	}
 }
-
 struct AperiodicUnstructuredGeometryHeader {
 	@wopwop char[32] name;
 	@wopwop int timesteps;
@@ -250,13 +249,13 @@ struct GeometryFileHandle {
 
 
 	file.file.serial_write_struct(patch_file.file_header);
-	/++
-		file.file_handle.serial_write_struct(patch_file.file_header);
+	
+		//file.file_handle.serial_write_struct(patch_file.file_header);
 
 		foreach(ref zone_header; patch_file.zone_headers) {
-			file.file_handle.serial_write_struct(zone_header);
+			file.file.serial_write_struct(zone_header);
 		}
-	+/
+	
 
 	return file;
 }
@@ -266,7 +265,10 @@ static if(have_mpi) @trusted GeometryFileHandle create_geometry_file(GeomFileTyp
 
 	file.is_serial = false;
 	file.etype = to_mpi_type!float;
+	
 
+
+	
 	// First we create a group and communicator for those ranks that actually have
 	// loading data to save.
 	size_t[] send_buff = new size_t[comm.size];
@@ -453,32 +455,71 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 	}
 }
 
-@trusted private void append_geometry_data_serial(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
-	static if(is(GeometryData == ConstantGeometryData)) {
-		// Fill in.
+@trusted private void append_geometry_data_serial(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) 
+
+{
+	static if(is(GeometryData == ConstantGeometryData)) 
+	
+	{
+		
+		patch_file.file.rawWrite (patch_data.x_nodes);
+		patch_file.file.rawWrite (patch_data.y_nodes);
+		patch_file.file.rawWrite (patch_data.z_nodes);
+		patch_file.file.rawWrite (patch_data.x_normals);
+		patch_file.file.rawWrite (patch_data.y_normals);
+		patch_file.file.rawWrite (patch_data.z_normals);
+		
+		/* /* // Writing the blade geometry to the file.
+	// geometry_file.append_geometry_data(blade_geom, 0); */
+
+	//append_geometry_data(geometry_file, blade_geom, 0);
+
+		 
+/* 
+		auto IO_geometry_file = geometry_file.append_geomoetry_data.rawWrite(blade_geom, 0);
+
+
+
+
+	/* // Writing the lifting line geometry to the file.
+	geometry_file.append_geometry_data(lifting_line_geometry_data, 1);  
+
+		 IO_geometry_file += geometry_file.append_geomoetry_data.rawWrite(lifting_line_geometry_data, 0); */
+ 
+
 	} else {
 		static assert("Cannot export non-constant patch data");
-	}
+
+	} 
 }
+		
 
 @trusted void append_geometry_data(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
 	if(patch_file.is_serial) {
-		append_geometry_data_mpi(patch_file, patch_data, zone);
-	} else {
 		append_geometry_data_serial(patch_file, patch_data, zone);
+	} else {
+		
+		append_geometry_data_mpi(patch_file, patch_data, zone);
 	}
 }
 
 void close_geometry_file(ref GeometryFileHandle file) {
-	if(file.is_serial) {
+	if(!file.is_serial) {
 		if(file.comm_group.rank != MPI_UNDEFINED) {
 			auto ret = MPI_File_close(&file.file_handle);
 			enforce(ret == MPI_SUCCESS, "Failed to close wopwop loading file with error: "~ret.to!string);
 		}
 	} else {
-		// Fill in.
+		file.file.close(); 
+
 	}
 }
+
+
+ 
+
+
+
 
 unittest {
 
@@ -577,7 +618,8 @@ unittest {
 	/++
 	 +	This function generates the geometry arrays for the NACA 0012 blade.
 	 +/
-	auto generate_blade_geom(double[] radial_stations, double[] twist, double radius, double[] chord) {
+	auto generate_blade_geom(double[] radial_stations, double[] twist, double radius, double[] chord) 
+	{
 		// radial_stations are in the y direction and the airfoil points are in the x-z plane.
 
 		size_t num_nodes = radial_stations.length*naca0012.length;
@@ -869,6 +911,7 @@ unittest {
 	double[] twist = new double[r.length];
 	double[] real_chord = new double[r.length];
 	real_chord[] = (R/AR);
+	twist[] = 0;
 
 	// This is basically the header of the geometry file.
 	// It includes each zone header as well. Here we have 2
@@ -924,6 +967,30 @@ unittest {
 	mpi_shutdown;
 
 	auto serial_geometry_file = create_geometry_file(geometry, "serial_geom.dat", [blade_geom.x_nodes.length, lifting_line_geometry_data.x_nodes.length], [blade_geom.x_normals.length, lifting_line_geometry_data.x_normals.length]);
+
+
+	// Write the blade geometry to the file.
+	serial_geometry_file.append_geometry_data(blade_geom, 0);
+	// Write the lifting line geometry to the file.
+	serial_geometry_file.append_geometry_data(lifting_line_geometry_data, 1);
+
+	serial_geometry_file.close_geometry_file;
+	
+
+
+
+// Create and write header for geometry file.
+	
+	 
+
+
+
+
+
+
+
+
+	 
 	/+
 
 		You will need to create and fill in these function call that write the same data, but not using the MPI file calls and instead using the file IO stuff from std.stdio
@@ -955,6 +1022,17 @@ unittest {
 
 	serial_file_buffer = serial_file.rawRead(serial_file_buffer);
 	serial_file.close;
+
+
+	writeln(serial_file_buffer.length);
+	writeln(parallel_file_buffer.length);
+
+	foreach(index, element; parallel_file_buffer)
+	{
+		assert(element == serial_file_buffer [index], "Parallel and serial file outputs do not agree at index. " ~ index.to!string);
+
+	}
+
 	
 
 	assert(parallel_file_buffer.equal(serial_file_buffer), "Parallel and serial file outputs do not agree.");

@@ -1,7 +1,9 @@
 module wopwopd.geometry;
 
-import mpid;
-import mpid : Group, include, group;
+version(Have_mpid) {
+	import mpid;
+	import mpid : Group, include, group;
+}
 
 import numd.linearalgebra.matrix;
 
@@ -83,7 +85,6 @@ alias UnstructuredGeometryFile(TimeType time_type) = GeometryFile!(Structuring.u
 alias AperiodicUnstructuredGeometryFile = UnstructuredGeometryFile!(TimeType.aperiodic);
 alias ConstantUnstructuredGeometryFile = UnstructuredGeometryFile!(TimeType.constant);
 
-//alias AperiodicStructuredGeometryFile = StructuredGeometryFile!(TimeType.aperiodic);
 alias ConstantStructuredGeometryFile = StructuredGeometryFile!(TimeType.constant);
 
 struct ConstantStructuredGeometryHeader {
@@ -99,46 +100,6 @@ struct ConstantStructuredGeometryHeader {
 		j_max = _j_max;
 	}
 }
-
-/+struct PeriodicStructuredGeometryHeader {
-	char[32] name;
-	float period;
-	int timesteps;
-	int number_of_nodes;
-	int number_of_faces;
-	int[] connectivity;
-
-	this(string _name, float _period, int _timesteps, int _number_of_nodes, int _number_of_faces, int[] _connectivity) {
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		period = _period;
-		timesteps = _timesteps;
-		number_of_nodes = _number_of_nodes;
-		number_of_faces = _number_of_faces;
-		connectivity = new int[_connectivity.length];
-		connectivity[] = _connectivity[];
-	}
-}
-
-struct AperiodicStructuredGeometryHeader {
-	char[32] name;
-	int timesteps;
-	int number_of_nodes;
-	int number_of_faces;
-	int[] connectivity;
-
-	this(string _name, int _timesteps, int _number_of_nodes, int _number_of_faces, int[] _connectivity) {
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		timesteps = _timesteps;
-		number_of_nodes = _number_of_nodes;
-		number_of_faces = _number_of_faces;
-		connectivity = new int[_connectivity.length];
-		connectivity[] = _connectivity[];
-	}
-}+/
 
 struct ConstantUnstructuredGeometryHeader {
 	@wopwop char[32] name;
@@ -217,8 +178,8 @@ struct ConstantGeometryData {
 }
 
 struct GeometryFileHandle {
-	//static if(have_mpi) {
-		MPI_File file_handle;
+	static if(have_mpi) {
+		MPI_File mpi_file;
 		MPI_Info info;
 		Datatype etype;
 		Datatype[] node_filetype;
@@ -234,27 +195,22 @@ struct GeometryFileHandle {
 		Group comm_group;
 		Comm comm;
 		bool is_serial;
-	//} else {
-		File file;
-		// May need more things
-	//}
+	} else {
+		File serial_file;
+	}
 }
 
 @trusted GeometryFileHandle create_geometry_file(GeomFileType)(auto ref GeomFileType patch_file, string filename, size_t[] rank_node_count, size_t[] rank_normal_count) {
 	GeometryFileHandle file;
 
 	file.is_serial = true;
-	file.file = File(filename, "wb");
-	// Fill in
-
-
-	file.file.serial_write_struct(patch_file.file_header);
+	file.serial_file = File(filename, "wb");
 	
-		//file.file_handle.serial_write_struct(patch_file.file_header);
-
-		foreach(ref zone_header; patch_file.zone_headers) {
-			file.file.serial_write_struct(zone_header);
-		}
+	file.serial_file.serial_write_struct(patch_file.serial_file_header);
+	
+	foreach(ref zone_header; patch_file.zone_headers) {
+		file.serial_file.serial_write_struct(zone_header);
+	}
 	
 
 	return file;
@@ -265,9 +221,6 @@ static if(have_mpi) @trusted GeometryFileHandle create_geometry_file(GeomFileTyp
 
 	file.is_serial = false;
 	file.etype = to_mpi_type!float;
-	
-
-
 	
 	// First we create a group and communicator for those ranks that actually have
 	// loading data to save.
@@ -338,20 +291,20 @@ static if(have_mpi) @trusted GeometryFileHandle create_geometry_file(GeomFileTyp
 	auto ret = MPI_Info_create(&(file.info));
 	enforce(ret == MPI_SUCCESS, "Failed to create MPI info object");
 
-	ret = MPI_File_open(file.comm, filename.toStringz, MPI_MODE_CREATE | MPI_MODE_WRONLY, file.info, &file.file_handle);
+	ret = MPI_File_open(file.comm, filename.toStringz, MPI_MODE_CREATE | MPI_MODE_WRONLY, file.info, &file.mpi_file);
 
 	enforce(ret == MPI_SUCCESS, "Failed to open or create loading file");
 
 	MPI_Offset offset = 0;
 	// Only root rank writes header info.
 	if(file.comm.rank == 0) {
-		file.file_handle.serial_write_struct(patch_file.file_header);
+		file.mpi_file.serial_write_struct(patch_file.file_header);
 
 		foreach(ref zone_header; patch_file.zone_headers) {
-			file.file_handle.serial_write_struct(zone_header);
+			file.mpi_file.serial_write_struct(zone_header);
 		}
 
-		ret = MPI_File_get_position(file.file_handle, &offset);
+		ret = MPI_File_get_position(file.mpi_file, &offset);
 	}
 
 	file.comm.bcast(offset, 0);
@@ -380,14 +333,6 @@ static if(have_mpi) @trusted GeometryFileHandle create_geometry_file(GeomFileTyp
 		file.x_normal_displacement[zone] = file.z_node_displacement[zone] + total_nodes[zone]/3;
 		file.y_normal_displacement[zone] = file.x_normal_displacement[zone] + total_normals[zone]/3;
 		file.z_normal_displacement[zone] = file.y_normal_displacement[zone] + total_normals[zone]/3;
-
-		import std.stdio : writeln;
-		//writeln("zone ", zone, " x_node_displacement: ", file.x_node_displacement[zone]);
-		//writeln("zone ", zone, " y_node_displacement: ", file.y_node_displacement[zone]);
-		//writeln("zone ", zone, " z_node_displacement: ", file.z_node_displacement[zone]);
-		//writeln("zone ", zone, " x_normal_displacement: ", file.x_normal_displacement[zone]);
-		//writeln("zone ", zone, " y_normal_displacement: ", file.y_normal_displacement[zone]);
-		//writeln("zone ", zone, " z_normal_displacement: ", file.z_normal_displacement[zone]);
 	}
 
 	return file;
@@ -412,42 +357,42 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 
 		//enforce(patch_data.x_normals.length == patch_data.x_nodes.length);
 
-		auto ret = MPI_File_set_view(patch_file.file_handle, patch_file.x_node_displacement[zone], patch_file.etype, patch_file.node_filetype[zone], "native", patch_file.info);
+		auto ret = MPI_File_set_view(patch_file.mpi_file, patch_file.x_node_displacement[zone], patch_file.etype, patch_file.node_filetype[zone], "native", patch_file.info);
 		enforce(ret == MPI_SUCCESS, "Failed to set file view");
 
-		ret = MPI_File_write_all(patch_file.file_handle, patch_data.x_nodes.ptr, 1, patch_file.node_filetype[zone], MPI_STATUS_IGNORE);
+		ret = MPI_File_write_all(patch_file.mpi_file, patch_data.x_nodes.ptr, 1, patch_file.node_filetype[zone], MPI_STATUS_IGNORE);
 		enforce(ret == MPI_SUCCESS, "Failed to write all");
 
-		ret = MPI_File_set_view(patch_file.file_handle, patch_file.y_node_displacement[zone], patch_file.etype, patch_file.node_filetype[zone], "native", patch_file.info);
+		ret = MPI_File_set_view(patch_file.mpi_file, patch_file.y_node_displacement[zone], patch_file.etype, patch_file.node_filetype[zone], "native", patch_file.info);
 		enforce(ret == MPI_SUCCESS, "Failed to set file view");
 
-		ret = MPI_File_write_all(patch_file.file_handle, patch_data.y_nodes.ptr, 1, patch_file.node_filetype[zone], MPI_STATUS_IGNORE);
+		ret = MPI_File_write_all(patch_file.mpi_file, patch_data.y_nodes.ptr, 1, patch_file.node_filetype[zone], MPI_STATUS_IGNORE);
 		enforce(ret == MPI_SUCCESS, "Failed to write all");
 
-		ret = MPI_File_set_view(patch_file.file_handle, patch_file.z_node_displacement[zone], patch_file.etype, patch_file.node_filetype[zone], "native", patch_file.info);
+		ret = MPI_File_set_view(patch_file.mpi_file, patch_file.z_node_displacement[zone], patch_file.etype, patch_file.node_filetype[zone], "native", patch_file.info);
 		enforce(ret == MPI_SUCCESS, "Failed to set file view");
 
-		ret = MPI_File_write_all(patch_file.file_handle, patch_data.z_nodes.ptr, 1, patch_file.node_filetype[zone], MPI_STATUS_IGNORE);
+		ret = MPI_File_write_all(patch_file.mpi_file, patch_data.z_nodes.ptr, 1, patch_file.node_filetype[zone], MPI_STATUS_IGNORE);
 		enforce(ret == MPI_SUCCESS, "Failed to write all");
 
 
 
-		ret = MPI_File_set_view(patch_file.file_handle, patch_file.x_normal_displacement[zone], patch_file.etype, patch_file.normal_filetype[zone], "native", patch_file.info);
+		ret = MPI_File_set_view(patch_file.mpi_file, patch_file.x_normal_displacement[zone], patch_file.etype, patch_file.normal_filetype[zone], "native", patch_file.info);
 		enforce(ret == MPI_SUCCESS, "Failed to set file view");
 
-		ret = MPI_File_write_all(patch_file.file_handle, patch_data.x_normals.ptr, 1, patch_file.normal_filetype[zone], MPI_STATUS_IGNORE);
+		ret = MPI_File_write_all(patch_file.mpi_file, patch_data.x_normals.ptr, 1, patch_file.normal_filetype[zone], MPI_STATUS_IGNORE);
 		enforce(ret == MPI_SUCCESS, "Failed to write all");
 
-		ret = MPI_File_set_view(patch_file.file_handle, patch_file.y_normal_displacement[zone], patch_file.etype, patch_file.normal_filetype[zone], "native", patch_file.info);
+		ret = MPI_File_set_view(patch_file.mpi_file, patch_file.y_normal_displacement[zone], patch_file.etype, patch_file.normal_filetype[zone], "native", patch_file.info);
 		enforce(ret == MPI_SUCCESS, "Failed to set file view");
 
-		ret = MPI_File_write_all(patch_file.file_handle, patch_data.y_normals.ptr, 1, patch_file.normal_filetype[zone], MPI_STATUS_IGNORE);
+		ret = MPI_File_write_all(patch_file.mpi_file, patch_data.y_normals.ptr, 1, patch_file.normal_filetype[zone], MPI_STATUS_IGNORE);
 		enforce(ret == MPI_SUCCESS, "Failed to write all");
 
-		ret = MPI_File_set_view(patch_file.file_handle, patch_file.z_normal_displacement[zone], patch_file.etype, patch_file.normal_filetype[zone], "native", patch_file.info);
+		ret = MPI_File_set_view(patch_file.mpi_file, patch_file.z_normal_displacement[zone], patch_file.etype, patch_file.normal_filetype[zone], "native", patch_file.info);
 		enforce(ret == MPI_SUCCESS, "Failed to set file view");
 
-		ret = MPI_File_write_all(patch_file.file_handle, patch_data.z_normals.ptr, 1, patch_file.normal_filetype[zone], MPI_STATUS_IGNORE);
+		ret = MPI_File_write_all(patch_file.mpi_file, patch_data.z_normals.ptr, 1, patch_file.normal_filetype[zone], MPI_STATUS_IGNORE);
 		enforce(ret == MPI_SUCCESS, "Failed to write all");
 
 	} else {
@@ -455,38 +400,25 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 	}
 }
 
-@trusted private void append_geometry_data_serial(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) 
+@trusted private void append_geometry_data_serial(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
+	static if(is(GeometryData == ConstantGeometryData)) {
 
-{
-	static if(is(GeometryData == ConstantGeometryData)) 
-	
-	{
-		
-		patch_file.file.rawWrite (patch_data.x_nodes);
-		patch_file.file.rawWrite (patch_data.y_nodes);
-		patch_file.file.rawWrite (patch_data.z_nodes);
-		patch_file.file.rawWrite (patch_data.x_normals);
-		patch_file.file.rawWrite (patch_data.y_normals);
-		patch_file.file.rawWrite (patch_data.z_normals);
-		
-		/* /* // Writing the blade geometry to the file.
-	// geometry_file.append_geometry_data(blade_geom, 0); */
+		enforce(
+			(patch_data.x_nodes.length == patch_data.y_nodes.length) &&
+			(patch_data.x_nodes.length == patch_data.z_nodes.length)
+		);
 
-	//append_geometry_data(geometry_file, blade_geom, 0);
+		enforce(
+			(patch_data.x_normals.length == patch_data.y_normals.length) &&
+			(patch_data.x_normals.length == patch_data.z_normals.length)
+		);
 
-		 
-/* 
-		auto IO_geometry_file = geometry_file.append_geomoetry_data.rawWrite(blade_geom, 0);
-
-
-
-
-	/* // Writing the lifting line geometry to the file.
-	geometry_file.append_geometry_data(lifting_line_geometry_data, 1);  
-
-		 IO_geometry_file += geometry_file.append_geomoetry_data.rawWrite(lifting_line_geometry_data, 0); */
- 
-
+		patch_file.serial_file.rawWrite (patch_data.x_nodes);
+		patch_file.serial_file.rawWrite (patch_data.y_nodes);
+		patch_file.serial_file.rawWrite (patch_data.z_nodes);
+		patch_file.serial_file.rawWrite (patch_data.x_normals);
+		patch_file.serial_file.rawWrite (patch_data.y_normals);
+		patch_file.serial_file.rawWrite (patch_data.z_normals);
 	} else {
 		static assert("Cannot export non-constant patch data");
 
@@ -495,7 +427,7 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 		
 
 @trusted void append_geometry_data(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
-	if(patch_file.is_serial) {
+	static if(have_mpi) {
 		append_geometry_data_serial(patch_file, patch_data, zone);
 	} else {
 		
@@ -504,23 +436,18 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 }
 
 void close_geometry_file(ref GeometryFileHandle file) {
-	if(!file.is_serial) {
+	static if(have_mpi) {
 		if(file.comm_group.rank != MPI_UNDEFINED) {
-			auto ret = MPI_File_close(&file.file_handle);
+			auto ret = MPI_File_close(&file.mpi_file);
 			enforce(ret == MPI_SUCCESS, "Failed to close wopwop loading file with error: "~ret.to!string);
 		}
 	} else {
-		file.file.close(); 
+		file.serial_file.close(); 
 
 	}
 }
 
-
- 
-
-
-
-
+/+
 unittest {
 
 	alias Vec3 = Vector!(3, double);
@@ -618,8 +545,7 @@ unittest {
 	/++
 	 +	This function generates the geometry arrays for the NACA 0012 blade.
 	 +/
-	auto generate_blade_geom(double[] radial_stations, double[] twist, double radius, double[] chord) 
-	{
+	auto generate_blade_geom(double[] radial_stations, double[] twist, double radius, double[] chord) {
 		// radial_stations are in the y direction and the airfoil points are in the x-z plane.
 
 		size_t num_nodes = radial_stations.length*naca0012.length;
@@ -977,37 +903,6 @@ unittest {
 	serial_geometry_file.close_geometry_file;
 	
 
-
-
-// Create and write header for geometry file.
-	
-	 
-
-
-
-
-
-
-
-
-	 
-	/+
-
-		You will need to create and fill in these function call that write the same data, but not using the MPI file calls and instead using the file IO stuff from std.stdio
-
-	// Create and write header for geometry file. We pass to it the MPI communicator to use, the file name, an array of the number of nodes for each zone and another array for the number of normals for each zone.
-	auto geometry_file = create_geometry_file(geometry, "serial_geom.dat", [blade_geom.x_nodes.length, lifting_line_geometry_data.x_nodes.length], [blade_geom.x_normals.length, lifting_line_geometry_data.x_normals.length]);
-
-	// Write the blade geometry to the file.
-	geometry_file.append_geometry_data(blade_geom, 0);
-	// Write the lifting line geometry to the file.
-	geometry_file.append_geometry_data(lifting_line_geometry_data, 1);
-
-	// Close the file.
-	geometry_file.close_geometry_file;
-
-	+/
-
 	size_t expected_byte_size = 48412;
 	ubyte[] parallel_file_buffer = new ubyte[expected_byte_size];
 
@@ -1027,13 +922,10 @@ unittest {
 	writeln(serial_file_buffer.length);
 	writeln(parallel_file_buffer.length);
 
-	foreach(index, element; parallel_file_buffer)
-	{
+	foreach(index, element; parallel_file_buffer) {
 		assert(element == serial_file_buffer [index], "Parallel and serial file outputs do not agree at index. " ~ index.to!string);
-
 	}
-
-	
 
 	assert(parallel_file_buffer.equal(serial_file_buffer), "Parallel and serial file outputs do not agree.");
 }
++/

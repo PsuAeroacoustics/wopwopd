@@ -5,7 +5,6 @@
 	"authors": ["Robert F. Rau II"],
 	"targetType": "library",
 	"dependencies": {
-		"mpid": "~master",
 		"numd": "~>0.1.0"
 	},
 	"configurations": [
@@ -17,13 +16,22 @@
 			"name": "unittest",
 			"targetName": "wopwopd-test-library",
 			"targetType": "executable"
+		},
+		{
+			"name": "unittest-openmpi",
+			"targetName": "wopwopd-test-library",
+			"targetType": "executable",
+			"dependencies": {"mpid": "~master"}
 		}
 	],
     "buildTypes": {
 		"unittest": {
 			"buildOptions": ["debugMode", "debugInfo", "unittests"],
+			"dflags": ["-main"]
+		},
+		"unittest-openmpi": {
+			"buildOptions": ["debugMode", "debugInfo", "unittests"],
 			"versions": ["openmpi"],
-			"dflags": ["-main"],
 			"lflags": ["-lmpi"]
 		},
 		"debug": {

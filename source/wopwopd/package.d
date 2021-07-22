@@ -1,6 +1,12 @@
 module wopwopd;
 
-import mpid;
+version(Have_mpid) {
+	import mpid;
+} else {
+	bool have_mpi() {
+		return false;
+	}
+}
 
 public import wopwopd.geometry;
 public import wopwopd.loading;

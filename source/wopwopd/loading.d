@@ -1,7 +1,9 @@
 module wopwopd.loading;
 
-import mpid;
-import mpid : Group, include, group;
+version(Have_mpid) {
+	import mpid;
+	import mpid : Group, include, group;
+}
 
 import numd.linearalgebra.matrix;
 

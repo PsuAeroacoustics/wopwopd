@@ -723,4 +723,5 @@ unittest {
 	auto read_namlist = parse_namelist_impl(file.read);
 
 	enforce(read_namlist == namelist);
+
 }

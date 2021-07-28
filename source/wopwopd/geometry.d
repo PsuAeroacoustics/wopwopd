@@ -964,7 +964,7 @@ unittest {
 	geometry_file.close_geometry_file;
 
 	// And we need to shutdown mpi after we are done with it.
-	mpi_shutdown;
+	//mpi_shutdown;
 
 	auto serial_geometry_file = create_geometry_file(geometry, "serial_geom.dat", [blade_geom.x_nodes.length, lifting_line_geometry_data.x_nodes.length], [blade_geom.x_normals.length, lifting_line_geometry_data.x_normals.length]);
 

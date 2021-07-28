@@ -12,6 +12,7 @@ import std.exception;
 import std.range;
 import std.string;
 import std.traits;
+import std.stdio;
 
 import wopwopd;
 
@@ -233,12 +234,15 @@ struct LoadingFileT(LoadingType loading_type) {
 	size_t total_data_size;
 	Group comm_group;
 	Comm comm;
+	bool is_serial;
+	File serial_file;
 }
 
 
 @trusted LoadingFileT!(LoadingFileType.loading_type) open_loading_file_append(LoadingFileType)(auto ref LoadingFileType loading_file, string filename, int rank_loading_count) {
 	LoadingFileT!(LoadingFileType.loading_type) file;
 	
+	file.is_serial = true;
 	// Fill in.
 
 	return file;
@@ -247,6 +251,7 @@ struct LoadingFileT(LoadingType loading_type) {
 @trusted LoadingFileT!(LoadingFileType.loading_type) create_loading_file(LoadingFileType)(auto ref LoadingFileType loading_file, string filename, int rank_loading_count) {
 	LoadingFileT!(LoadingFileType.loading_type) file;
 
+	file.is_serial = true;
 	// Fill in.
 	
 	return file;
@@ -260,7 +265,7 @@ struct LoadingFileT(LoadingType loading_type) {
 	LoadingFileT!(LoadingFileType.loading_type) file;
 	
 	file.etype = to_mpi_type!float;
-
+	file.is_serial = false;
 	// First we create a group and communicator for those ranks that actually have
 	// loading data to save.
 	int[] send_buff = new int[comm.size];
@@ -353,6 +358,7 @@ struct LoadingFileT(LoadingType loading_type) {
 @trusted LoadingFileT!(LoadingFileType.loading_type) create_loading_file(LoadingFileType)(ref Comm comm, auto ref LoadingFileType loading_file, string filename, int rank_loading_count) {
 	LoadingFileT!(LoadingFileType.loading_type) file;
 
+	file.is_serial = false;
 	file.etype = to_mpi_type!float;
 
 	// First we create a group and communicator for those ranks that actually have
@@ -685,7 +691,7 @@ private void append_loading_data_serial(LoadingFile, LoadingData)(ref LoadingFil
 }
 
 void append_loading_data(LoadingFile, LoadingData)(ref LoadingFile file, auto ref LoadingData loading_data) {
-	static if(have_mpi) {
+	if(!file.is_serial) {
 		append_loading_data_mpi(file, loading_data);
 	} else {
 		append_loading_data_serial(file, loading_data);
@@ -693,8 +699,130 @@ void append_loading_data(LoadingFile, LoadingData)(ref LoadingFile file, auto re
 }
 
 void close_loading_file(LoadingFileT)(ref LoadingFileT file) {
-	if(file.comm_group.rank != MPI_UNDEFINED) {
-		auto ret = MPI_File_close(&file.file_handle);
-		enforce(ret == MPI_SUCCESS, "Failed to close wopwop loading file with error: "~ret.to!string);
+	if(!file.is_serial) {
+		if(file.comm_group.rank != MPI_UNDEFINED) {
+			auto ret = MPI_File_close(&file.file_handle);
+			enforce(ret == MPI_SUCCESS, "Failed to close wopwop loading file with error: "~ret.to!string);
+		}
+	} else {
+		// Fill in
 	}
+}
+
+unittest {
+	import numd.utility : linspace;
+	
+	// This generates the 1D lifting line where the blade loads go.
+	// Also generate a chord and twist distribution down the blade.
+	auto linear_load = linspace!float(0.0, 1.0, 24);
+	//double[] twist = new double[r.length];
+	//double[] real_chord = new double[r.length];
+	//real_chord[] = (R/AR);
+	//twist[] = 0;
+
+
+	alias LoadingFileDef = AperiodicStructuredLoadingFile!(LoadingType.surface_loading);
+
+	// This is basically the header of the geometry file.
+	// It includes each zone header as well. Here we have 2
+	// geometry zones: the first for the detailed geometric
+	// description of the blade and the second for the
+	// description of the lifting line where the blade loads
+	// are.
+	auto loading = LoadingFileDef(
+		"Test loading file",
+		ReferenceFrame.patch_fixed,
+		DataAlignment.node_centered,
+		[
+			LoadingFileDef.HeaderType(
+				"Dummy blade loading",
+				1,//((start_iteration + iterations) - record_start_iteration).to!int,
+				linear_load.length.to!int,
+				1, // zone # (can't wait for named arguments)
+				false, // Do not compute thickness noise for this patch,
+				false // No loading data
+			),
+			LoadingFileDef.HeaderType(
+				"Test lifting line loading",
+				1,//((start_iteration + iterations) - record_start_iteration).to!int,
+				linear_load.length.to!int,
+				2, // zone # (can't wait for named arguments)
+				false, // Do not compute thickness noise for this patch,
+				true // Has loading data
+			)
+		]
+	);
+
+	ZoneLoadingData loading_data;
+	loading_data.time = 0;
+	loading_data.x_loading = new float[linear_load.length];
+	loading_data.y_loading = new float[linear_load.length];
+	loading_data.z_loading = new float[linear_load.length];
+
+	loading_data.x_loading[] = 0;
+	loading_data.y_loading[] = 0;
+	loading_data.z_loading[] = linear_load[];
+	// Actually generate blade geom.
+	//auto blade_geom = generate_blade_geom(r, twist, R, real_chord);
+
+	// Actually generate lifting line geom.
+	//auto lifting_line_geometry_data = ConstantGeometryData(r.length);
+	//lifting_line_geometry_data.y_nodes[] = r.map!(a => (R*a).to!float).array;
+	//lifting_line_geometry_data.x_nodes[] = 0;
+	//lifting_line_geometry_data.z_nodes[] = 0;
+//
+	//lifting_line_geometry_data.x_normals[] = 0;
+	//lifting_line_geometry_data.y_normals[] = 0;
+	//lifting_line_geometry_data.z_normals[] = 1;
+
+	// We need to init mpi to use any of the functions.
+	//mpi_init([]);
+	// Create and write header for geometry file. We pass to it the MPI communicator to use, the file name, an array of the number of nodes for each zone and another array for the number of normals for each zone.
+	//loading_files[r_idx][b_idx] = local_comm.create_loading_file(loading, loading_filename, r.length.to!int);
+	auto loading_file = world_comm.create_loading_file(loading, "parallel_loading.dat", linear_load.length.to!int);
+
+	// Write the blade geometry to the file.
+	loading_file.append_loading_data(loading_data);
+
+	// Close the file.
+	loading_file.close_loading_file;
+
+	// And we need to shutdown mpi after we are done with it.
+	//mpi_shutdown;
+
+	auto serial_loading_file = create_loading_file(loading, "serial_loading.dat", linear_load.length.to!int);
+
+
+	serial_loading_file.append_loading_data(loading_data);
+
+	serial_loading_file.close_loading_file;
+	
+
+	size_t expected_byte_size = 48412;
+	ubyte[] parallel_file_buffer = new ubyte[expected_byte_size];
+
+	auto parallel_file = File("parallel_loading.dat", "rb");
+
+	parallel_file_buffer = parallel_file.rawRead(parallel_file_buffer);
+	parallel_file.close;
+
+	ubyte[] serial_file_buffer = new ubyte[expected_byte_size];
+
+	auto serial_file = File("serial_loading.dat", "rb");
+
+	serial_file_buffer = serial_file.rawRead(serial_file_buffer);
+	serial_file.close;
+
+
+	writeln(serial_file_buffer.length);
+	writeln(parallel_file_buffer.length);
+
+	foreach(index, element; parallel_file_buffer)
+	{
+		assert(element == serial_file_buffer [index], "Parallel and serial file outputs do not agree at index. " ~ index.to!string);
+	}
+
+	
+
+	assert(parallel_file_buffer.equal(serial_file_buffer), "Parallel and serial file outputs do not agree.");
 }

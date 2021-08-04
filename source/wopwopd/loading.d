@@ -251,8 +251,16 @@ struct LoadingFileT(LoadingType loading_type) {
 @trusted LoadingFileT!(LoadingFileType.loading_type) create_loading_file(LoadingFileType)(auto ref LoadingFileType loading_file, string filename, int rank_loading_count) {
 	LoadingFileT!(LoadingFileType.loading_type) file;
 
+		//Filled In. 
 	file.is_serial = true;
-	// Fill in.
+	file.serial_file = File(filename, "wb");
+
+
+	file.serial_file.serial_write_struct(loading_file.file_header);
+
+	foreach(ref zone_header; loading_file.zone_headers) {
+		file.serial_file.serial_write_struct(zone_header);
+	}
 	
 	return file;
 }
@@ -261,7 +269,7 @@ struct LoadingFileT(LoadingType loading_type) {
  +	MPI collective call, shared serial call. All MPI processes, but only 1 thread per process,
  +	need to call this to get added to MPI file handle. Only the root rank writes the header information.
  +/
-@trusted LoadingFileT!(LoadingFileType.loading_type) open_loading_file_append(LoadingFileType)(ref Comm comm, auto ref LoadingFileType loading_file, string filename, int rank_loading_count) {
+@trusted LoadingFileT!(LoadingFileType.loading_type) open_loading_file_append(LoadingFileType)(ref Comm comm, auto ref LoadingFileType loading_file, strfilenameing , int rank_loading_count) {
 	LoadingFileT!(LoadingFileType.loading_type) file;
 	
 	file.etype = to_mpi_type!float;
@@ -686,8 +694,22 @@ static if(have_mpi) private void append_loading_data_mpi(LoadingFile, LoadingDat
 	}
 }
 
-private void append_loading_data_serial(LoadingFile, LoadingData)(ref LoadingFile file, auto ref LoadingData loading_data) {
+private void append_loading_data_serial(LoadingFile, LoadingData)(ref LoadingFile file, auto ref LoadingData loading_data) 
+{ 
 	// Fill in.
+	static if(is (LoadingData == ZoneLoadingData))
+	{
+	file.serial_file.rawWrite(loading_data.x_loading);
+    file.serial_file.rawWrite(loading_data.y_loading);
+  	file.serial_file.rawWrite(loading_data.z_loading);
+// add  timestep 
+
+
+
+} else 
+{
+	static assert ("Can't export non-constant loading data");
+} 
 }
 
 void append_loading_data(LoadingFile, LoadingData)(ref LoadingFile file, auto ref LoadingData loading_data) {
@@ -705,7 +727,7 @@ void close_loading_file(LoadingFileT)(ref LoadingFileT file) {
 			enforce(ret == MPI_SUCCESS, "Failed to close wopwop loading file with error: "~ret.to!string);
 		}
 	} else {
-		// Fill in
+		file.file.close();
 	}
 }
 

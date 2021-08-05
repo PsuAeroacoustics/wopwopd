@@ -5,7 +5,7 @@
 	"authors": ["Robert F. Rau II"],
 	"targetType": "library",
 	"dependencies": {
-		"numd": "~>0.1.0"
+		"numd": {"path": "./dependencies/numd"}
 	},
 	"configurations": [
 		{

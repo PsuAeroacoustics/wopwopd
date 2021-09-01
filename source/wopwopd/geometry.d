@@ -400,7 +400,7 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 	}
 }
 
-@trusted private void append_geometry_data_serial(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
+static if(!have_mpi) @trusted private void append_geometry_data_serial(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
 	static if(is(GeometryData == ConstantGeometryData)) {
 
 		enforce(
@@ -421,16 +421,14 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 		patch_file.serial_file.rawWrite (patch_data.z_normals);
 	} else {
 		static assert("Cannot export non-constant patch data");
-
 	} 
 }
 		
 
 @trusted void append_geometry_data(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
-	static if(have_mpi) {
+	static if(!have_mpi) {
 		append_geometry_data_serial(patch_file, patch_data, zone);
 	} else {
-		
 		append_geometry_data_mpi(patch_file, patch_data, zone);
 	}
 }

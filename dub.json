@@ -16,12 +16,6 @@
 			"name": "unittest",
 			"targetName": "wopwopd-test-library",
 			"targetType": "executable"
-		},
-		{
-			"name": "unittest-openmpi",
-			"targetName": "wopwopd-test-library",
-			"targetType": "executable",
-			"dependencies": {"mpid": "~master"}
 		}
 	],
     "buildTypes": {

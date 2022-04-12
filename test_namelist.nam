@@ -1,0 +1,87 @@
+!!! Test comments
+&EnvironmentIn
+	nbObserverContainers = 1 ! another test comment.
+	nbSourceContainers = 1
+	pressureFolderName = '/'
+	SPLFolderName = '/'
+	sigmaFolderName = '/'
+	debugLevel = 13
+	ASCIIOutputFlag = .true.
+	OASPLdBFlag = .true.
+	OASPLdBAFlag = .true.
+	spectrumFlag = .true.
+	SPLdBFlag = .true.
+	SPLdBAFlag = .true.
+	pressureGradient1AFlag = .true.
+	acousticPressureFlag = .true.
+	thicknessNoiseFlag = .true.
+	loadingNoiseFlag = .true.
+	totalNoiseFlag = .true.
+/
+&EnvironmentConstants
+	rho = 1.2
+	c = 343
+	nu = 1.8e-05
+/
+&ObserverIn
+	Title = 'Mic'
+	nt = 1
+	xLoc = 0
+	yLoc = 0
+	zLoc = 0
+/
+&ContainerIn
+	Title = 'Main Rotor'
+	nbContainer = 2
+	dTau = 1
+	nTau = 1
+	tauMax = 0
+	nbBase = 1
+/
+&CB
+	Title = 'Rotation'
+	AxisType = 'TimeIndependent'
+	AngleType = 'KnownFunction'
+	Omega = 20
+	AxisValue = 0, 0, 1
+/
+&ContainerIn
+	Title = 'blade 1 container'
+	patchGeometryFile = 'geom_file_1.dat'
+	patchLoadingFile = 'loading_file_1.dat'
+	nbBase = 2
+/
+&CB
+	Title = 'blade pitch offset'
+	AxisType = 'TimeIndependent'
+	AngleType = 'TimeIndependent'
+	AxisValue = 0, 1, 0
+	AngleValue = 0.2
+/
+&CB
+	Title = 'blade angle offset'
+	AxisType = 'TimeIndependent'
+	AngleType = 'TimeIndependent'
+	AxisValue = 0, 0, 1
+	AngleValue = 0
+/
+&ContainerIn
+	Title = 'blade 2 container'
+	patchGeometryFile = 'geom_file_2.dat'
+	patchLoadingFile = 'loading_file_2.dat'
+	nbBase = 2
+/
+&CB
+	Title = 'blade pitch offset'
+	AxisType = 'TimeIndependent'
+	AngleType = 'TimeIndependent'
+	AxisValue = 0, 1, 0
+	AngleValue = 0.2
+/
+&CB
+	Title = 'blade angle offset'
+	AxisType = 'TimeIndependent'
+	AngleType = 'TimeIndependent'
+	AxisValue = 0, 0, 1
+	AngleValue = 1.56
+/

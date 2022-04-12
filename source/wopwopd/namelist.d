@@ -563,10 +563,20 @@ private Namelist parse_namelist_impl(F)(auto ref F file) {
 		file
 		.split("/\n")
 		.filter!(a => a != "")
-		.map!(a => a.split('\n').map!(s => s.strip).filter!(s => s != "").array);
+		.map!((a) {
+			return 
+				a
+				.split('\n')
+				.filter!(a => !a.startsWith("!!!")) // Remove whole line comments.
+				.map!(s => s.strip)
+				.filter!(s => s != "")
+				.map!(s => s.split("!")[0]) // Remove inline comments.
+				.array;
+		});
 
 	Namelist namelist;
 
+	writeln(namelist_blocks);
 	auto environment_block = namelist_blocks.front;
 	namelist_blocks.popFront;
 
@@ -721,7 +731,9 @@ unittest {
 	write_namelist_impl(file, namelist);
 
 	auto read_namlist = parse_namelist_impl(file.read);
-
 	enforce(read_namlist == namelist);
+
+	auto read_namlist_with_comments = parse_namelist("test_namelist.nam");
+	enforce(read_namlist_with_comments == namelist);
 
 }

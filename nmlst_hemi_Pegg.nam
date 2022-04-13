@@ -1,0 +1,317 @@
+!!! Created by D.Zachos
+!!! Date: 20220405   Time: 13:44:10
+ &EnvironmentIn
+    nbSourceContainers   =  1   ! number of aircraft
+    nbObserverContainers =  1   ! one observer grid
+		acousticPressureFlag =.false. ! output press history
+		spectrumFlag =.true. ! output acoustic spectrum
+		SPLdBFLAG =.true.    ! in SPL dB - narrowband 
+		SPLdBAFlag =.true.   ! and A-weighted SPL in dBA
+		OASPLdBFlag =.true.   ! output OASPL in dB
+		OASPLdBAFlag =.true.  ! output A-weighted OASPLdBA
+		PNLTFlag = .false.     ! output PNLT
+		SELFlag  = .false.     ! output SEL
+		EPNLFlag = .false.     ! output EPNL
+	thicknessNoiseFlag =.true. ! output thickness noise
+	loadingNoiseFlag =.true.   ! output loading noise
+	broadbandFlag = .true. ! output broadband noise
+	totalNoiseFlag        =.true.   !  total noise
+		debugLevel            =           1
+		ASCIIOutputFlag       = .true.  ! grid and function file output in ASCII
+	sigmaflag = .false.   ! no sigma surfaces
+		loadingSigmaFlag    = .true.
+		pressureSigmaFlag   = .true.
+		normalSigmaFlag     = .true.
+		observerSigmaflag   = .true.
+	ResultsFolderName = 'Hemi_Pegg_window'
+ /
+ &EnvironmentConstants
+   rho =   1.224670    
+   c   =   342.9000    
+ /
+ &ObserverIn
+	Title     ='Observers'  ! observer title
+	attachedTo = 'Aircraft'
+	radius=53.34	!MR radius = 17.539ft = 5.34 m => 53.45m = 10MRR
+	nbTheta=36
+	nbPsi=18
+	thetaMin=0
+	thetaMax=6.28318530718
+	psiMin=0
+	psiMax=-1.57079632679
+	
+	nt =     8192         ! number of times
+	tmin =    0.00    		    !   start time
+	tmax =    3.04566           !   end time 20 revs
+	segmentSize       = 0.761415	! 5 MR Rev
+	segmentStepSize   = 0.152283 	!1 MR Rev
+	windowFunction    = 'Hanning Window'
+	octaveFlag        = .true.  ! use octave bands
+	octaveNumber      = 3       ! 1/3rd octave bands
+	octaveApproxFlag  = .true.  ! 
+	highPassFrequency = 8.913   ! Correspond to certi
+	lowPassFrequency  = 11220.  ! fication standards
+	AtmAtten = .true.   ! Atmos atten
+ /
+ &ContainerIn
+   Title ='Aircraft'  ! first container is Aircraft
+   nbContainer =           2   ! number of rotors
+   nbBase = 4   ! four COBs - aircraft state
+   dTau =   3.9948028E-04   ! TWOPI/(NPSI*   218.4500     )
+ /
+ &CB
+   Title ='Aircraft motion'
+   TranslationType = 'KnownFunction'
+    AH =       0.000,       0.000,       0.000   ! acceleration
+    VH =      30.867,0.000,0.000   ! velocity
+    Y0 =       0.000       0.000       0.000   ! position
+ /
+ &CB
+   Title ='CG Yaw Angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue = 0.0, 0.0, 1.0
+   AngleValue =      0.0000  ! radians
+ /
+ &CB
+   Title ='CG Pitch Angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue = 0.0, 1.0, 0.0
+   AngleValue =      0.0186  ! radians
+ /
+ &CB
+   Title ='CG Roll Angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue = 1.0, 0.0, 0.0
+   AngleValue =      0.0363  ! radians
+ /
+ &ContainerIn
+  Title = 'Rotor 1'
+  nbContainer =  6 ! 2*NBLADE: thickness & loading
+  nbBase = 4  ! 4 changes of base for the rotor follow
+  PeggNoiseFlag = .true.!! Pegg Broadband Noise
+ /
+ &CB
+   Title ='Hub Translation'
+   TranslationType = 'TimeIndependent'
+   TranslationValue =      0.01231,     0.00000,    -1.90530
+ /
+ &CB
+   Title ='Hub Pitch'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 1.0, 0.0
+   AngleValue =     -0.05236
+ /
+ &CB
+   Title ='Hub Roll'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  1.0, 0.0, 0.0
+   AngleValue =      0.00000
+ /
+ &CB
+   Title ='Rotation'
+   rotation = .true.
+   AngleType = 'KnownFunction'
+   Omega =   -41.26000  ! rotation rate (rps)
+   Psi0 =     0.00000  ! psi offset (radians)
+   AxisValue =  0.0, 0.0,-1.0
+ /
+  &PeggIN
+ TotalBladeAreaFlag = 'UserValue',
+ TotalBladeArea     =    5.166912    
+ BladeRadiusFlag = 'UserValue',
+ BladeRadius =    5.345887    
+ RotSpeedFlag       = 'Compute',
+ CLBarFlag         = 'Compute',
+ TotalThrustFlag    = 'UserValue',
+ TotalThrust         =    20028.66    
+ HubAxisFlag        = 'Compute',
+ spreadBands =.true.
+ keepEnergyConst =.true.
+ /
+ &ContainerIn
+   Title = 'Thickness Blade 1'
+   patchGeometryFile = 'bsurface01.dat'
+   periodicKeyOffset =      0.00000 ! degrees
+   nbBase = 1    ! One change of base
+ /
+ &CB
+   Title ='Initial azimuth angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 0.0, 1.0
+   AngleValue =  -3.141593    
+ /
+ &ContainerIn
+   Title = 'Loading Blade 1'
+   patchGeometryFile = 'geometry0100.dat'
+   patchLoadingFile = 'loading0100.dat'
+   periodicKeyOffset =      0.00000 ! degrees
+   nbBase = 1    ! One change of base
+ /
+ &CB
+   Title ='Initial azimuth angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 0.0, 1.0
+   AngleValue =  -3.141593    
+ /
+ &ContainerIn
+   Title = 'Thickness Blade 2'
+   patchGeometryFile = 'bsurface01.dat'
+   periodicKeyOffset =    120.00000 ! degrees
+   nbBase = 1    ! One change of base
+ /
+ &CB
+   Title ='Initial azimuth angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 0.0, 1.0
+   AngleValue =  -1.047198    
+ /
+ &ContainerIn
+   Title = 'Loading Blade 2'
+   patchGeometryFile = 'geometry0100.dat'
+   patchLoadingFile = 'loading0100.dat'
+   periodicKeyOffset =    120.00000 ! degrees
+   nbBase = 1    ! One change of base
+ /
+ &CB
+   Title ='Initial azimuth angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 0.0, 1.0
+   AngleValue =  -1.047198    
+ /
+ &ContainerIn
+   Title = 'Thickness Blade 3'
+   patchGeometryFile = 'bsurface01.dat'
+   periodicKeyOffset =    240.00000 ! degrees
+   nbBase = 1    ! One change of base
+ /
+ &CB
+   Title ='Initial azimuth angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 0.0, 1.0
+   AngleValue =   1.047198    
+ /
+ &ContainerIn
+   Title = 'Loading Blade 3'
+   patchGeometryFile = 'geometry0100.dat'
+   patchLoadingFile = 'loading0100.dat'
+   periodicKeyOffset =    240.00000 ! degrees
+   nbBase = 1    ! One change of base
+ /
+ &CB
+   Title ='Initial azimuth angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 0.0, 1.0
+   AngleValue =   1.047198    
+ /
+ &ContainerIn
+  Title = 'Rotor 2'
+  nbContainer =  4 ! 2*NBLADE: thickness & loading
+  nbBase = 4  ! 4 changes of base for the rotor follow
+  PeggNoiseFlag = .true.!! Pegg Broadband Noise
+ /
+ &CB
+   Title ='Hub Translation'
+   TranslationType = 'TimeIndependent'
+   TranslationValue =     -5.96899,     0.41072,     0.58217
+ /
+ &CB
+   Title ='Hub Pitch'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 1.0, 0.0
+   AngleValue =      0.00000
+ /
+ &CB
+   Title ='Hub Roll'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  1.0, 0.0, 0.0
+   AngleValue =     -1.57080
+ /
+ &CB
+   Title ='Rotation'
+   rotation = .true.
+   AngleType = 'KnownFunction'
+   Omega =  -218.45000  ! rotation rate (rps)
+   Psi0 =     0.00000  ! psi offset (radians)
+   AxisValue =  0.0, 0.0,-1.0
+ /
+  &PeggIN
+ TotalBladeAreaFlag = 'UserValue',
+ TotalBladeArea     =   0.2878880    
+ BladeRadiusFlag = 'UserValue',
+ BladeRadius =   0.9296400    
+ RotSpeedFlag       = 'Compute',
+ CLBarFlag         = 'Compute',
+ TotalThrustFlag    = 'UserValue',
+ TotalThrust         =    756.9907    
+ HubAxisFlag        = 'Compute',
+ spreadBands =.true.
+ keepEnergyConst =.true.
+ /
+ &ContainerIn
+   Title = 'Thickness Blade 1'
+   patchGeometryFile = 'bsurface02.dat'
+   periodicKeyOffset =      0.00000 ! degrees
+   nbBase = 1    ! One change of base
+ /
+ &CB
+   Title ='Initial azimuth angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 0.0, 1.0
+   AngleValue =  -3.141593    
+ /
+ &ContainerIn
+   Title = 'Loading Blade 1'
+   patchGeometryFile = 'geometry0200.dat'
+   patchLoadingFile = 'loading0200.dat'
+   periodicKeyOffset =      0.00000 ! degrees
+   nbBase = 1    ! One change of base
+ /
+ &CB
+   Title ='Initial azimuth angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 0.0, 1.0
+   AngleValue =  -3.141593    
+ /
+ &ContainerIn
+   Title = 'Thickness Blade 2'
+   patchGeometryFile = 'bsurface02.dat'
+   periodicKeyOffset =    180.00000 ! degrees
+   nbBase = 1    ! One change of base
+ /
+ &CB
+   Title ='Initial azimuth angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 0.0, 1.0
+   AngleValue =  0.0000000E+00
+ /
+ &ContainerIn
+   Title = 'Loading Blade 2'
+   patchGeometryFile = 'geometry0200.dat'
+   patchLoadingFile = 'loading0200.dat'
+   periodicKeyOffset =    180.00000 ! degrees
+   nbBase = 1    ! One change of base
+ /
+ &CB
+   Title ='Initial azimuth angle'
+   AxisType = 'TimeIndependent'
+   AngleType = 'TimeIndependent'
+   AxisValue =  0.0, 0.0, 1.0
+   AngleValue =  0.0000000E+00
+ /
+ 

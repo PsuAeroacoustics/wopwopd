@@ -221,6 +221,8 @@ struct ContainerIn {
 	OptionalFloat tauMax;
 	OptionalString patchGeometryFile;
 	OptionalString patchLoadingFile;
+	OptionalBool PeggNoiseFlag;
+	OptionalBool BPMNoiseFlag;
 	private OptionalSize nbBase;
 	ContainerIn[] children;
 	CB[] cobs;
@@ -465,7 +467,16 @@ private Type parse_section(Type)(string[] section_string) {
 						static if(is(R == bool)) {
 							mixin("section."~field~" = var_value.strip(\".\").to!R;");
 						} else static if(is(R == FVec3)) {
-							mixin("section."~field~" = FVec3((\"[\"~var_value~\"]\").to!(float[3]));");
+							auto reformated_vec = 
+								var_value
+								.splitWhen!((a, b) => a.isWhite || a == ',')
+								.map!(a => a.to!string.strip)
+								.filter!(a => a != "")
+								.map!(a => a.strip(","))
+								.map!(a => a.to!float)
+								.staticArray!(float[3]);
+
+							mixin("section."~field~" = FVec3(reformated_vec);");
 						} else static if(is(R == AxisType) || is(R == TranslationType) || is(R == AngleType)) {
 							mixin("section."~field~" = var_value.parse_enum_value!R;");
 						} else static if(isArray!R && !is(R: string) && !is(R: char[])) {
@@ -520,7 +531,8 @@ private ContainerIn parse_containerin_namelist(R)(auto ref R range) {
 	auto container_block = range.front;
 	range.popFront;
 
-	enforce(parse_block_type(container_block.front) == BlockType.ContainerIn, "Expected ContainerIn namelist");
+	auto block_type = parse_block_type(container_block.front);
+	enforce(block_type == BlockType.ContainerIn, "Expected ContainerIn namelist. Instead got "~block_type.to!string);
 
 	container_block.popFront;
 
@@ -535,6 +547,16 @@ private ContainerIn parse_containerin_namelist(R)(auto ref R range) {
 			cb_block.popFront;
 			t.cobs ~= parse_section!CB(cb_block);
 		}
+	}
+
+	if(!t.PeggNoiseFlag.isNull) {
+		// Just eject these sections into the sun if they exist.
+		range.popFront;
+	}
+
+	if(!t.BPMNoiseFlag.isNull) {
+		// Just eject these sections into the sun if they exist.
+		range.popFront;
 	}
 
 	if(!t.nbContainer.isNull) {
@@ -572,11 +594,11 @@ private Namelist parse_namelist_impl(F)(auto ref F file) {
 				.filter!(s => s != "")
 				.map!(s => s.split("!")[0]) // Remove inline comments.
 				.array;
-		});
+		})
+		.filter!(a => !a.empty);
 
 	Namelist namelist;
 
-	writeln(namelist_blocks);
 	auto environment_block = namelist_blocks.front;
 	namelist_blocks.popFront;
 
@@ -735,5 +757,7 @@ unittest {
 
 	auto read_namlist_with_comments = parse_namelist("test_namelist.nam");
 	enforce(read_namlist_with_comments == namelist);
+
+	auto demi_test_namelist = parse_namelist("nmlst_hemi_Pegg.nam");
 
 }

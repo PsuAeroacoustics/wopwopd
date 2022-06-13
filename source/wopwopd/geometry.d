@@ -194,19 +194,17 @@ struct GeometryFileHandle {
 		size_t total_data_size;
 		Group comm_group;
 		Comm comm;
-		bool is_serial;
 	} else {
 		File serial_file;
 	}
 }
 
-@trusted GeometryFileHandle create_geometry_file(GeomFileType)(auto ref GeomFileType patch_file, string filename, size_t[] rank_node_count, size_t[] rank_normal_count) {
+@trusted GeometryFileHandle create_geometry_file(GeomFileType)(auto ref GeomFileType patch_file, string filename) {
 	GeometryFileHandle file;
 
-	file.is_serial = true;
 	file.serial_file = File(filename, "wb");
 	
-	file.serial_file.serial_write_struct(patch_file.serial_file_header);
+	file.serial_file.serial_write_struct(patch_file.file_header);
 	
 	foreach(ref zone_header; patch_file.zone_headers) {
 		file.serial_file.serial_write_struct(zone_header);
@@ -219,7 +217,6 @@ struct GeometryFileHandle {
 static if(have_mpi) @trusted GeometryFileHandle create_geometry_file(GeomFileType)(ref Comm comm, auto ref GeomFileType patch_file, string filename, size_t[] rank_node_count, size_t[] rank_normal_count) {
 	GeometryFileHandle file;
 
-	file.is_serial = false;
 	file.etype = to_mpi_type!float;
 	
 	// First we create a group and communicator for those ranks that actually have

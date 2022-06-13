@@ -70,7 +70,7 @@ template to_string(alias m) {
 	enum string to_string = m.stringof;
 }
 
-@trusted void serial_write_struct(S)(MPI_File file, auto ref S s) {
+static if(have_mpi) @trusted void serial_write_struct(S)(MPI_File file, auto ref S s) {
 	import std.meta : staticMap;
 	template to_string(alias m) {
 		enum string to_string = m.stringof;
@@ -100,15 +100,8 @@ template to_string(alias m) {
 @trusted void serial_write_struct(S)(File file, auto ref S s) {
 	import std.meta : staticMap;
 	
-	//file.rawWrite(/+data+/);
-
 	static foreach(m_idx, member; staticMap!(to_string, getSymbolsByUDA!(S, wopwop))) {{
-		//pragma(msg, "member: "~member);
-		//file.rawWrite
 		mixin("auto v = s."~member~";");
 		file.rawWrite([v]);
-	pragma(msg, member);
-
-
 	}}
 }

@@ -20,13 +20,15 @@
 	],
     "buildTypes": {
 		"unittest": {
-			"buildOptions": ["debugMode", "debugInfo", "unittests"],
-			"dflags": ["-main"]
+			"buildOptions": ["unittests", "debugMode", "debugInfo"],
+			"dflags": ["-I./main.d"],
+			"versions": ["openmpi"]
 		},
-		"unittest-openmpi": {
-			"buildOptions": ["debugMode", "debugInfo", "unittests"],
-			"versions": ["openmpi"],
-			"lflags": ["-lmpi"]
+		"unittest-rel": {
+			"buildOptions": ["unittests", "releaseMode", "debugInfo", "optimize", "inline"],
+			"dflags-ldc": ["-linkonce-templates"],
+			"dflags": ["-I./main.d", "-mcpu=native"],
+			"versions": ["openmpi"]
 		},
 		"debug": {
 			"buildOptions": ["debugMode", "debugInfo"]
@@ -34,31 +36,72 @@
 		"debug-openmpi": {
 			"buildOptions": ["debugMode", "debugInfo"],
 			"versions": ["openmpi"],
-			"lflags": ["-lmpi"]
+			"dflags-ldc": ["-Og"]
+		},
+		"debug-native": {
+			"buildOptions": ["debugMode", "debugInfo"],
+			"dflags": ["-mcpu=native"]
+		},
+		"debug-native-openmpi": {
+			"buildOptions": ["debugMode", "debugInfo"],
+			"versions": ["openmpi"],
+			"dflags": ["-mcpu=native"]
+		},
+		"debug-native-512": {
+			"buildOptions": ["debugMode", "debugInfo"],
+			"dflags": ["-mcpu=native"],
+			"dflags-ldc": ["-mattr=-prefer-256-bit,prefer-mask-registers"],
+			"versions": ["AVX_512F"]
 		},
 		"release": {
-			"buildOptions": ["releaseMode", "inline", "debugInfo", "optimize"],
-			"dmd-dflags": ["-mcpu=native"]
+			"buildOptions": ["releaseMode", "inline", "optimize"],
+			"dflags-ldc": ["-linkonce-templates"]
 		},
-		"ldc-release": {
-			"buildOptions": ["releaseMode", "inline", "debugInfo"],
-			"dflags": ["-O3", "-enable-cross-module-inlining", "-mcpu=native"]
+		"release-native": {
+			"buildOptions": ["releaseMode", "inline", "optimize"],
+			"dflags": ["-mcpu=native"],
+			"dflags-ldc": ["-linkonce-templates"]
 		},
-		"ldc-release-no512": {
-			"buildOptions": ["releaseMode", "inline"],
-			"dflags": ["-O3", "-enable-cross-module-inlining", "-mcpu=native", "-mattr=-avx512f"]
+		"release-native-unittest": {
+			"buildOptions": ["unittests", "releaseMode", "inline", "optimize", "debugInfo"],
+			"dflags": ["-mcpu=native"],
+			"dflags-ldc": ["-linkonce-templates"]
 		},
-		"ldc-release-noavx2": {
-			"buildOptions": ["releaseMode", "inline"],
-			"dflags": ["-O3", "-enable-cross-module-inlining", "-mcpu=native", "-mattr=-avx512f,-avx2"]
+		"release-native-openmpi": {
+			"buildOptions": ["releaseMode", "inline", "optimize"],
+			"dflags": ["-mcpu=native"],
+			"dflags-ldc": ["-linkonce-templates"],
+			"versions": ["openmpi"]
 		},
-		"ldc-release-fast-math": {
-			"buildOptions": ["releaseMode", "inline"],
-			"dflags": ["-O3", "-enable-cross-module-inlining", "-mcpu=native", "-ffast-math"]
+		"release-native-512": {
+			"buildOptions": ["releaseMode", "inline", "optimize"],
+			"dflags": ["-mcpu=native"],
+			"dflags-ldc": ["-linkonce-templates", "-mattr=-prefer-256-bit,+prefer-mask-registers"],
+			"versions": ["AVX_512F"]
 		},
-		"ldc-release-fast-math-no512": {
-			"buildOptions": ["releaseMode", "inline"],
-			"dflags": ["-O3", "-enable-cross-module-inlining", "-mcpu=native", "-ffast-math", "-mattr=-avx512f"]
+		"release-native-openmpi-512": {
+			"buildOptions": ["releaseMode", "inline", "optimize"],
+			"dflags": ["-mcpu=native"],
+			"dflags-ldc": ["-linkonce-templates", "-mattr=-prefer-256-bit,+prefer-mask-registers"],
+			"versions": ["AVX_512F", "openmpi"]
+		},
+		"release-native-dbinf": {
+			"buildOptions": ["releaseMode", "inline", "optimize", "debugInfo"],
+			"dflags": ["-mcpu=native"],
+			"dflags-ldc": ["-linkonce-templates"]
+		},
+		"release-native-openmpi-dbinf": {
+			"buildOptions": ["releaseMode", "inline", "optimize", "debugInfo"],
+			"dflags": ["-mcpu=native"],
+			"dflags-ldc": ["-linkonce-templates"],
+			"lflags": ["-export-dynamic"],
+			"versions": ["openmpi"]
+		},
+		"release-native-dbinf-512": {
+			"buildOptions": ["releaseMode", "inline", "optimize", "debugInfo"],
+			"dflags": ["-mcpu=native"],
+			"dflags-ldc": ["-linkonce-templates", "-mattr=-prefer-256-bit,+prefer-mask-registers"],
+			"versions": ["AVX_512F"]
 		}
     }
 }

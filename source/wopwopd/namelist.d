@@ -22,6 +22,7 @@ alias OptionalSize = Nullable!size_t;
 alias OptionalString = Nullable!string;
 alias OptionalBool = Nullable!bool;
 
+
 enum BlockType {
 	EnvironmentIn,
 	EnvironmentConstants,
@@ -47,6 +48,21 @@ private BlockType parse_block_type(S)(S str) {
 			return BlockType.Unknown;
 	}
 }
+
+enum AverageSide : string {
+	center = "center"
+}
+
+alias OptionalAverageSide = Nullable!AverageSide;
+
+enum WindowFunction : string {
+	hanning_window = "Hanning Window",
+	blackman_window = "Blackman Window",
+	flatTop_window = "Flat Top Window",
+	hamming_window = "Hamming Window"
+}
+
+alias OptionalWindowFunction = Nullable!WindowFunction;
 
 struct Casename {
 	OptionalString globalFolderName;
@@ -170,6 +186,24 @@ struct ObserverIn {
 	OptionalSize nbBaseObsContFrame;
 	OptionalSize nbBaseLocalFrame;
 	OptionalString fileName;
+	OptionalFloat segmentSize;
+	OptionalFloat segmentStepSize;
+	OptionalFloat percentOverlap;
+	OptionalSize numAverages;
+	OptionalAverageSide averageSide;
+	OptionalSize nbHarmonics;
+	OptionalWindowFunction windowFunction;
+	OptionalBool CorrFlag;
+	OptionalSize segmentIncrement;
+	OptionalSize nbNewSegments;
+	OptionalSize maxObsTimeExpansions;
+	private OptionalSize nbFreqRanges;
+	OptionalFloat highPassFrequency;
+	OptionalFloat lowPassFrequency;
+	OptionalBool octaveFlag;
+	OptionalFloat octaveNumber;
+	OptionalBool octaveApproxFlag;
+	OptionalBool AtmAtten;
 	OptionalFloat xLoc;
 	OptionalFloat yLoc;
 	OptionalFloat zLoc;
@@ -182,6 +216,7 @@ struct ObserverIn {
 	OptionalFloat psiMax;
 	OptionalBool indexSwap;
 	CB[] cobs;
+	RangeIn[] ranges;
 
 	bool opEquals(const ObserverIn other) const {
 		bool result = true;
@@ -192,6 +227,13 @@ struct ObserverIn {
 				if(result) {
 					foreach(idx, cob; cobs) {
 						result &= cob == other.cobs[idx];
+					}
+				}
+			} else static if(member == "ranges") {
+				result &= ranges.length == other.ranges.length;
+				if(result) {
+					foreach(idx, range; ranges) {
+						result &= range == other.ranges[idx];
 					}
 				}
 			} else static if(member != "nbBase") {
@@ -205,6 +247,31 @@ struct ObserverIn {
 				} else {
 					result &= true;
 				}
+			}
+		}}
+
+		return result;
+	}
+}
+
+struct RangeIn {
+	OptionalString Title;
+	OptionalFloat minFrequency;
+	OptionalFloat maxFrequency;
+	
+	bool opEquals(const RangeIn other) const {
+		bool result = true;
+
+		static foreach(member; FieldNameTuple!RangeIn) {{
+			mixin("auto this_m  = "~member~";");
+			mixin("auto other_m  = other."~member~";");
+
+			if(!this_m.isNull && !other_m.isNull) {
+				result &= this_m.get == other_m.get;
+			} else if(this_m.isNull != other_m.isNull) {
+				result &= false;
+			} else {
+				result &= true;
 			}
 		}}
 
@@ -355,7 +422,7 @@ void write_namelist_struct(F, S)(auto ref F file, auto ref S s) {
 	file.writeln("&", S.stringof);
 
 	static foreach(m_idx, member; FieldNameTuple!S) {{
-		static if((member == "cobs") || (member == "children")) {
+		static if((member == "cobs") || (member == "children") || (member == "ranges")) {
 			alias SaveType = field_types[m_idx];
 			SaveType value;
 			bool skip = true;
@@ -436,9 +503,13 @@ private void write_namelist_impl(F)(auto ref F file, ref Namelist namelist) {
 	file.write_namelist_struct(namelist.environment_constants);
 	foreach(observer; namelist.observers) {
 		if(observer.cobs.length != 0) observer.nbBase = observer.cobs.length;
+		if(observer.ranges.length != 0) observer.nbFreqRanges = observer.ranges.length;
 		file.write_namelist_struct(observer);
 		foreach(ref cob; observer.cobs) {
 			file.write_namelist_struct(cob);
+		}
+		foreach(ref range; observer.ranges) {
+			file.write_namelist_struct(range);
 		}
 	}
 	file._write_containers(namelist.containers);
@@ -455,10 +526,10 @@ private Type parse_section(Type)(string[] section_string) {
 
 		outer: switch(var_name.toLower) {
 			static foreach(field; FieldNameTuple!(Type)) {
-				static if(field != "cobs" && field != "children") {
+				static if(field != "cobs" && field != "children" && field != "ranges") {
 					case field.toLower:
 						mixin("alias _R = Unqual!(ReturnType!(Type."~field~".get));");
-						static if(isArray!_R && !is(_R == AxisType) && !is(_R == AngleType) && !is(_R == TranslationType)) {
+						static if(isArray!_R && !is(_R == AxisType) && !is(_R == AngleType) && !is(_R == TranslationType) && !is(_R == WindowFunction) && !is(_R == AverageSide)) {
 							alias R = Unqual!(ForeachType!_R)[];
 						} else {
 							alias R = _R;
@@ -477,7 +548,7 @@ private Type parse_section(Type)(string[] section_string) {
 								.staticArray!(float[3]);
 
 							mixin("section."~field~" = FVec3(reformated_vec);");
-						} else static if(is(R == AxisType) || is(R == TranslationType) || is(R == AngleType)) {
+						} else static if(is(R == AxisType) || is(R == TranslationType) || is(R == AngleType) || is(R == WindowFunction) || is(R == AverageSide)) {
 							mixin("section."~field~" = var_value.parse_enum_value!R;");
 						} else static if(isArray!R && !is(R: string) && !is(R: char[])) {
 							mixin("section."~field~" = (\"[\"~var_value~\"]\").to!R;");

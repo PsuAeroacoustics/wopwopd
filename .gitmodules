@@ -4,3 +4,6 @@
 [submodule "dependencies/mpid"]
 	path = dependencies/mpid
 	url = git@github.com:PsuAeroacoustics/mpid.git
+[submodule "dependencies/pyd"]
+	path = dependencies/pyd
+	url = git@github.com:Rob-Rau/pyd.git

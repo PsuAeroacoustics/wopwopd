@@ -10,12 +10,51 @@
 	"configurations": [
 		{
 			"name": "library",
-			"targetType": "library"
+			"targetType": "library",
+			"excludedSourceFiles": [
+				"source/wopwopd/python/package.d",
+				"source/wopwopd/python/geometry.d",
+				"source/wopwopd/python/namelist.d",
+				"source/wopwopd/python/loading.d"
+			]
 		},
 		{
 			"name": "unittest",
 			"targetName": "wopwopd-test-library",
 			"targetType": "executable"
+		},
+		{
+			"name": "library-python37",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python37"
+			}
+		},
+		{
+			"name": "library-python39",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python39"
+			}
+		},
+		{
+			"name": "library-python310",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python310"
+			}
 		}
 	],
     "buildTypes": {
@@ -56,6 +95,22 @@
 		"release": {
 			"buildOptions": ["releaseMode", "inline", "optimize"],
 			"dflags-ldc": ["-linkonce-templates"]
+		},
+		"release-generic-avx": {
+			"buildOptions": ["releaseMode", "inline", "optimize"],
+			"dflags": ["-mcpu=generic"],
+			"dflags-ldc": ["-linkonce-templates", "-mattr=+avx"]
+		},
+		"release-generic-avx2": {
+			"buildOptions": ["releaseMode", "inline", "optimize"],
+			"dflags": ["-mcpu=generic"],
+			"dflags-ldc": ["-linkonce-templates", "-mattr=+avx2"]
+		},
+		"release-generic-avx512f": {
+			"buildOptions": ["releaseMode", "inline", "optimize"],
+			"dflags": ["-mcpu=generic"],
+			"dflags-ldc": ["-linkonce-templates", "-mattr=-prefer-256-bit,+prefer-mask-registers", "-mattr=+avx512f"],
+			"versions": ["AVX_512F"]
 		},
 		"release-native": {
 			"buildOptions": ["releaseMode", "inline", "optimize"],

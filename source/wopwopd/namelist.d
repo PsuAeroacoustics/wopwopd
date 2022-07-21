@@ -215,6 +215,17 @@ struct ObserverIn {
 	OptionalFloat psiMin;
 	OptionalFloat psiMax;
 	OptionalBool indexSwap;
+
+	OptionalSize nbx;
+	OptionalSize nby;
+	OptionalSize nbz;
+	OptionalFloat xMin;
+	OptionalFloat xMax;
+	OptionalFloat yMin;
+	OptionalFloat yMax;
+	OptionalFloat zMin;
+	OptionalFloat zMax;
+
 	CB[] cobs;
 	RangeIn[] ranges;
 

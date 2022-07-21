@@ -52,14 +52,14 @@ struct ConstantUnstructuredHeader {
 	bool compute_thickness;
 	bool has_data;
 
-	this(string _name, int _number_of_data_points, int _zone = 0, bool _compute_thickness = true, bool _has_data = true) {
-		zone = _zone;
-		compute_thickness = _compute_thickness;
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		number_of_data_points = _number_of_data_points;
-		has_data = _has_data;
+	this(string name, int number_of_data_points, int zone = 0, bool compute_thickness = true, bool has_data = true) {
+		this.zone = zone;
+		this.compute_thickness = compute_thickness;
+		this.name[] = '\0';
+		auto range = name.length > this.name.length ? this.name.length : name.length;
+		this.name[0..range] = name[0..range];
+		this.number_of_data_points = number_of_data_points;
+		this.has_data = has_data;
 	}
 }
 
@@ -71,15 +71,15 @@ struct PeriodicUnstructuredHeader {
 	bool compute_thickness;
 	bool has_data;
 
-	this(string _name, float _period, int _number_of_data_points, int _zone = 0, bool _compute_thickness = true, bool _has_data = true) {
-		zone = _zone;
-		compute_thickness = _compute_thickness;
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		period = _period;
-		number_of_data_points = _number_of_data_points;
-		has_data = _has_data;
+	this(string name, float period, int number_of_data_points, int zone = 0, bool compute_thickness = true, bool has_data = true) {
+		this.zone = zone;
+		this.compute_thickness = compute_thickness;
+		this.name[] = '\0';
+		auto range = name.length > this.name.length ? this.name.length : name.length;
+		this.name[0..range] = name[0..range];
+		this.period = period;
+		this.number_of_data_points = number_of_data_points;
+		this.has_data = has_data;
 	}
 }
 
@@ -91,15 +91,15 @@ struct AperiodicUnstructuredHeader {
 	bool compute_thickness;
 	bool has_data;
 
-	this(string _name, int _timesteps, int _number_of_data_points, int _zone = 0, bool _compute_thickness = true, bool _has_data = true) {
-		zone = _zone;
-		compute_thickness = _compute_thickness;
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		timesteps = _timesteps;
-		number_of_data_points = _number_of_data_points;
-		has_data = _has_data;
+	this(string name, int timesteps, int number_of_data_points, int zone = 0, bool compute_thickness = true, bool has_data = true) {
+		this.zone = zone;
+		this.compute_thickness = compute_thickness;
+		this.name[] = '\0';
+		auto range = name.length > this.name.length ? this.name.length : name.length;
+		this.name[0..range] = name[0..range];
+		this.timesteps = timesteps;
+		this.number_of_data_points = number_of_data_points;
+		this.has_data = has_data;
 	}
 }
 
@@ -111,15 +111,15 @@ struct ConstantStructuredHeader {
 	bool compute_thickness;
 	bool has_data;
 
-	this(string _name, int _i_max, int _j_max, int _zone = 0, bool _compute_thickness = true, bool _has_data = true) {
-		zone = _zone;
-		compute_thickness = _compute_thickness;
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		i_max = _i_max;
-		j_max = _j_max;
-		has_data = _has_data;
+	this(string name, int i_max, int j_max, int zone = 0, bool compute_thickness = true, bool has_data = true) {
+		this.zone = zone;
+		this.compute_thickness = compute_thickness;
+		this.name[] = '\0';
+		auto range = name.length > this.name.length ? this.name.length : name.length;
+		this.name[0..range] = name[0..range];
+		this.i_max = i_max;
+		this.j_max = j_max;
+		this.has_data = has_data;
 	}
 }
 
@@ -132,16 +132,16 @@ struct PeriodicStructuredHeader {
 	bool compute_thickness;
 	bool has_data;
 
-	this(string _name, float _period, int _i_max, int _j_max, int _zone = 0, bool _compute_thickness = true, bool _has_data = true) {
-		zone = _zone;
-		compute_thickness = _compute_thickness;
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		period = _period;
-		i_max = _i_max;
-		j_max = _j_max;
-		has_data = _has_data;
+	this(string name, float period, int i_max, int j_max, int zone = 0, bool compute_thickness = true, bool has_data = true) {
+		this.zone = zone;
+		this.compute_thickness = compute_thickness;
+		this.name[] = '\0';
+		auto range = name.length > this.name.length ? this.name.length : name.length;
+		this.name[0..range] = name[0..range];
+		this.period = period;
+		this.i_max = i_max;
+		this.j_max = j_max;
+		this.has_data = has_data;
 	}
 }
 
@@ -154,16 +154,16 @@ struct AperiodicStructuredHeader {
 	bool compute_thickness;
 	bool has_data;
 
-	this(string _name, int _timesteps, int _i_max, int _j_max, int _zone = 0, bool _compute_thickness = true, bool _has_data = true) {
-		zone = _zone;
-		compute_thickness = _compute_thickness;
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		timesteps = _timesteps;
-		i_max = _i_max;
-		j_max = _j_max;
-		has_data = _has_data;
+	this(string name, int timesteps, int i_max, int j_max, int zone = 0, bool compute_thickness = true, bool has_data = true) {
+		this.zone = zone;
+		this.compute_thickness = compute_thickness;
+		this.name[] = '\0';
+		auto range = name.length > this.name.length ? this.name.length : name.length;
+		this.name[0..range] = name[0..range];
+		this.timesteps = timesteps;
+		this.i_max = i_max;
+		this.j_max = j_max;
+		this.has_data = has_data;
 	}
 }
 
@@ -197,7 +197,6 @@ struct LoadingFile(Structuring structuring, TimeType time_type, LoadingType _loa
 		zone_headers = _zone_headers;
 		zones_with_data = zone_headers.filter!(a => a.has_data).map!(zh => zh.compute_thickness ? zh.zone : -zh.zone).array;
 		file_header = FileHeader(comment, _zone_headers.length.to!int, _reference_frame, _data_alignment);
-		
 	}
 }
 
@@ -205,18 +204,32 @@ alias UnstructuredLoadingFile(TimeType time_type, LoadingType loading_type) = Lo
 alias StructuredLoadingFile(TimeType time_type, LoadingType loading_type) = LoadingFile!(Structuring.structured, time_type, loading_type);
 
 alias AperiodicUnstructuredLoadingFile(LoadingType _loading_type) = UnstructuredLoadingFile!(TimeType.aperiodic, _loading_type);
-alias AperiodicStructuredLoadingFile(LoadingType _loading_type) = UnstructuredLoadingFile!(TimeType.aperiodic, _loading_type);
+alias AperiodicStructuredLoadingFile(LoadingType _loading_type) = StructuredLoadingFile!(TimeType.aperiodic, _loading_type);
+alias PeriodicUnstructuredLoadingFile(LoadingType _loading_type) = UnstructuredLoadingFile!(TimeType.periodic, _loading_type);
+alias PeriodicStructuredLoadingFile(LoadingType _loading_type) = StructuredLoadingFile!(TimeType.periodic, _loading_type);
+alias ConstantUnstructuredLoadingFile(LoadingType _loading_type) = UnstructuredLoadingFile!(TimeType.constant, _loading_type);
+alias ConstantStructuredLoadingFile(LoadingType _loading_type) = StructuredLoadingFile!(TimeType.constant, _loading_type);
 
 struct ZoneLoadingData {
 	float time;
 	float[] x_loading;
 	float[] y_loading;
 	float[] z_loading;
+
+	this(size_t num_points) {
+		x_loading = new float[num_points];
+		y_loading = new float[num_points];
+		z_loading = new float[num_points];
+	}
 }
 
 struct ZonePressureData {
 	float time;
 	float[] pressure;
+
+	this(size_t num_points) {
+		pressure = new float[num_points];
+	}
 }
 
 struct LoadingFileT(LoadingType loading_type) {

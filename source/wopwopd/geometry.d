@@ -33,17 +33,17 @@ struct GeometryFileHeaderT(Structuring _structuring, TimeType _time_type) {
 	@wopwop int have_iblank = 0;
 	@wopwop int reserved_2 = 0;
 
-	this(string comment, string _units, int _number_of_zones, DataAlignment _data_alignment) {
-		comment_str[] = '\0';
-		units[] = '\0';
+	this(string comment, string units, int number_of_zones, DataAlignment data_alignment) {
+		this.comment_str[] = '\0';
+		this.units[] = '\0';
 		auto comment_range = comment.length > comment_str.length ? comment_str.length : comment.length;
-		comment_str[0..comment_range] = comment[0..comment_range];
+		this.comment_str[0..comment_range] = comment[0..comment_range];
 
-		auto units_range = _units.length > units.length ? units.length : _units.length;
-		units[0..units_range] = _units[0..units_range];
+		auto units_range = units.length > this.units.length ? this.units.length : units.length;
+		this.units[0..units_range] = units[0..units_range];
 
-		number_of_zones = _number_of_zones;
-		data_alignment = _data_alignment;
+		this.number_of_zones = number_of_zones;
+		this.data_alignment = data_alignment;
 	}
 }
 
@@ -73,9 +73,9 @@ struct GeometryFile(Structuring structuring, TimeType _time_type) {
 
 	HeaderType[] zone_headers;
 
-	this(string comment, string units, DataAlignment _data_alignment, HeaderType[] _zone_headers) {
-		file_header = FileHeader(comment, units, _zone_headers.length.to!int, _data_alignment);
-		zone_headers = _zone_headers;
+	this(string comment, string units, DataAlignment data_alignment, HeaderType[] zone_headers) {
+		file_header = FileHeader(comment, units, zone_headers.length.to!int, data_alignment);
+		this.zone_headers = zone_headers;
 	}
 }
 
@@ -83,6 +83,7 @@ alias StructuredGeometryFile(TimeType time_type) = GeometryFile!(Structuring.str
 alias UnstructuredGeometryFile(TimeType time_type) = GeometryFile!(Structuring.unstructured, time_type);
 
 alias AperiodicUnstructuredGeometryFile = UnstructuredGeometryFile!(TimeType.aperiodic);
+alias PeriodicUnstructuredGeometryFile = UnstructuredGeometryFile!(TimeType.periodic);
 alias ConstantUnstructuredGeometryFile = UnstructuredGeometryFile!(TimeType.constant);
 
 alias ConstantStructuredGeometryFile = StructuredGeometryFile!(TimeType.constant);
@@ -92,12 +93,12 @@ struct ConstantStructuredGeometryHeader {
 	@wopwop int i_max;
 	@wopwop int j_max;
 
-	this(string _name, int _i_max, int _j_max) {
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		i_max = _i_max;
-		j_max = _j_max;
+	this(string name, int i_max, int j_max) {
+		this.name[] = '\0';
+		auto range = name.length > this.name.length ? this.name.length : name.length;
+		this.name[0..range] = name[0..range];
+		this.i_max = i_max;
+		this.j_max = j_max;
 	}
 }
 
@@ -107,14 +108,14 @@ struct ConstantUnstructuredGeometryHeader {
 	@wopwop int number_of_faces;
 	@wopwop int[] connectivity;
 
-	this(string _name, int _number_of_nodes, int _number_of_faces, int[] _connectivity) {
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		number_of_nodes = _number_of_nodes;
-		number_of_faces = _number_of_faces;
-		connectivity = new int[_connectivity.length];
-		connectivity[] = _connectivity[];
+	this(string name, int number_of_nodes, int number_of_faces, int[] connectivity) {
+		this.name[] = '\0';
+		auto range = name.length > this.name.length ? this.name.length : name.length;
+		this.name[0..range] = name[0..range];
+		this.number_of_nodes = number_of_nodes;
+		this.number_of_faces = number_of_faces;
+		this.connectivity = new int[connectivity.length];
+		this.connectivity[] = connectivity[];
 	}
 }
 
@@ -126,16 +127,16 @@ struct PeriodicUnstructuredGeometryHeader {
 	@wopwop int number_of_faces;
 	@wopwop int[] connectivity;
 
-	this(string _name, float _period, int _timesteps, int _number_of_nodes, int _number_of_faces, int[] _connectivity) {
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		period = _period;
-		timesteps = _timesteps;
-		number_of_nodes = _number_of_nodes;
-		number_of_faces = _number_of_faces;
-		connectivity = new int[_connectivity.length];
-		connectivity[] = _connectivity[];
+	this(string name, float period, int timesteps, int number_of_nodes, int number_of_faces, int[] connectivity) {
+		this.name[] = '\0';
+		auto range = name.length > this.name.length ? this.name.length : name.length;
+		this.name[0..range] = name[0..range];
+		this.period = period;
+		this.timesteps = timesteps;
+		this.number_of_nodes = number_of_nodes;
+		this.number_of_faces = number_of_faces;
+		this.connectivity = new int[connectivity.length];
+		this.connectivity[] = connectivity[];
 	}
 }
 struct AperiodicUnstructuredGeometryHeader {
@@ -145,15 +146,15 @@ struct AperiodicUnstructuredGeometryHeader {
 	@wopwop int number_of_faces;
 	@wopwop int[] connectivity;
 
-	this(string _name, int _timesteps, int _number_of_nodes, int _number_of_faces, int[] _connectivity) {
-		name[] = '\0';
-		auto range = _name.length > name.length ? name.length : _name.length;
-		name[0..range] = _name[0..range];
-		timesteps = _timesteps;
-		number_of_nodes = _number_of_nodes;
-		number_of_faces = _number_of_faces;
-		connectivity = new int[_connectivity.length];
-		connectivity[] = _connectivity[];
+	this(string name, int timesteps, int number_of_nodes, int number_of_faces, int[] connectivity) {
+		this.name[] = '\0';
+		auto range = name.length > this.name.length ? this.name.length : name.length;
+		this.name[0..range] = name[0..range];
+		this.timesteps = timesteps;
+		this.number_of_nodes = number_of_nodes;
+		this.number_of_faces = number_of_faces;
+		this.connectivity = new int[connectivity.length];
+		this.connectivity[] = connectivity[];
 	}
 }
 
@@ -165,6 +166,16 @@ struct ConstantGeometryData {
 	float[] x_normals;
 	float[] y_normals;
 	float[] z_normals;
+
+	this(ref ConstantGeometryData geo_data) {
+		this.x_nodes = geo_data.x_nodes;
+		this.y_nodes = geo_data.y_nodes;
+		this.z_nodes = geo_data.z_nodes;
+
+		this.x_normals = geo_data.x_normals;
+		this.y_normals = geo_data.y_normals;
+		this.z_normals = geo_data.z_normals;
+	}
 
 	this(size_t num_nodes) {
 		x_nodes = new float[num_nodes];
@@ -210,7 +221,6 @@ struct GeometryFileHandle {
 		file.serial_file.serial_write_struct(zone_header);
 	}
 	
-
 	return file;
 }
 
@@ -410,12 +420,12 @@ static if(!have_mpi) @trusted private void append_geometry_data_serial(GeometryD
 			(patch_data.x_normals.length == patch_data.z_normals.length)
 		);
 
-		patch_file.serial_file.rawWrite (patch_data.x_nodes);
-		patch_file.serial_file.rawWrite (patch_data.y_nodes);
-		patch_file.serial_file.rawWrite (patch_data.z_nodes);
-		patch_file.serial_file.rawWrite (patch_data.x_normals);
-		patch_file.serial_file.rawWrite (patch_data.y_normals);
-		patch_file.serial_file.rawWrite (patch_data.z_normals);
+		patch_file.serial_file.rawWrite(patch_data.x_nodes);
+		patch_file.serial_file.rawWrite(patch_data.y_nodes);
+		patch_file.serial_file.rawWrite(patch_data.z_nodes);
+		patch_file.serial_file.rawWrite(patch_data.x_normals);
+		patch_file.serial_file.rawWrite(patch_data.y_normals);
+		patch_file.serial_file.rawWrite(patch_data.z_normals);
 	} else {
 		static assert("Cannot export non-constant patch data");
 	} 
@@ -423,6 +433,7 @@ static if(!have_mpi) @trusted private void append_geometry_data_serial(GeometryD
 		
 
 @trusted void append_geometry_data(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
+	import std.stdio : writeln;
 	static if(!have_mpi) {
 		append_geometry_data_serial(patch_file, patch_data, zone);
 	} else {
@@ -442,485 +453,282 @@ void close_geometry_file(ref GeometryFileHandle file) {
 	}
 }
 
-/+
-unittest {
+auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] radial_stations, double[] twist, double radius, double[] chord) {
+	// radial_stations are in the y direction and the airfoil points are in the x-z plane.
 
 	alias Vec3 = Vector!(3, double);
+	size_t num_nodes = radial_stations.length*airfoil_xsection.length;
+	auto geom = ConstantGeometryData(num_nodes);
 
-	immutable double R = 4.7324;
-	immutable double AR = 17;
-
-	/++
-	 +	This is a cut section naca 0012 airfoil points. Used in blade geometry generation.
-	 +/
-	immutable double[2][] naca0012 = [
-		[1.000000,  0.001260],
-		[0.998459,  0.001476],
-		[0.993844,  0.002120],
-		[0.986185,  0.003182],
-		[0.975528,  0.004642],
-		[0.961940,  0.006478],
-		[0.945503,  0.008658],
-		[0.926320,  0.011149],
-		[0.904508,  0.013914],
-		[0.880203,  0.016914],
-		[0.853553,  0.020107],
-		[0.824724,  0.023452],
-		[0.793893,  0.026905],
-		[0.761249,  0.030423],
-		[0.726995,  0.033962],
-		[0.691342,  0.037476],
-		[0.654508,  0.040917],
-		[0.616723,  0.044237],
-		[0.578217,  0.047383],
-		[0.539230,  0.050302],
-		[0.500000,  0.052940],
-		[0.460770,  0.055241],
-		[0.421783,  0.057148],
-		[0.383277,  0.058609],
-		[0.345492,  0.059575],
-		[0.308658,  0.060000],
-		[0.273005,  0.059848],
-		[0.238751,  0.059092],
-		[0.206107,  0.057714],
-		[0.175276,  0.055709],
-		[0.146447,  0.053083],
-		[0.119797,  0.049854],
-		[0.095492,  0.046049],
-		[0.073680,  0.041705],
-		[0.054497,  0.036867],
-		[0.038060,  0.031580],
-		[0.024472,  0.025893],
-		[0.013815,  0.019854],
-		[0.006156,  0.013503],
-		[0.001541,  0.006877],
-		[0.000000,  0.000000],
-		[0.001541, -0.006877],
-		[0.006156, -0.013503],
-		[0.013815, -0.019854],
-		[0.024472, -0.025893],
-		[0.038060, -0.031580],
-		[0.054497, -0.036867],
-		[0.073680, -0.041705],
-		[0.095492, -0.046049],
-		[0.119797, -0.049854],
-		[0.146447, -0.053083],
-		[0.175276, -0.055709],
-		[0.206107, -0.057714],
-		[0.238751, -0.059092],
-		[0.273005, -0.059848],
-		[0.308658, -0.060000],
-		[0.345492, -0.059575],
-		[0.383277, -0.058609],
-		[0.421783, -0.057148],
-		[0.460770, -0.055241],
-		[0.500000, -0.052940],
-		[0.539230, -0.050302],
-		[0.578217, -0.047383],
-		[0.616723, -0.044237],
-		[0.654508, -0.040917],
-		[0.691342, -0.037476],
-		[0.726995, -0.033962],
-		[0.761249, -0.030423],
-		[0.793893, -0.026905],
-		[0.824724, -0.023452],
-		[0.853553, -0.020107],
-		[0.880203, -0.016914],
-		[0.904508, -0.013914],
-		[0.926320, -0.011149],
-		[0.945503, -0.008658],
-		[0.961940, -0.006478],
-		[0.975528, -0.004642],
-		[0.986185, -0.003182],
-		[0.993844, -0.002120],
-		[0.998459, -0.001476],
-		[1.000000, -0.001260]
-	];
-
-	/++
-	 +	This function generates the geometry arrays for the NACA 0012 blade.
-	 +/
-	auto generate_blade_geom(double[] radial_stations, double[] twist, double radius, double[] chord) {
-		// radial_stations are in the y direction and the airfoil points are in the x-z plane.
-
-		size_t num_nodes = radial_stations.length*naca0012.length;
-		auto geom = ConstantGeometryData(num_nodes);
-
-		size_t node_idx = 0;
+	size_t node_idx = 0;
+	foreach(p_idx, p; airfoil_xsection) {
 		foreach(r_idx, rs; radial_stations) {
-			foreach(p_idx, p; naca0012) {
-				static import std.math;
-				immutable xp = p[0]*chord[r_idx];
-				immutable zp = p[1]*chord[r_idx];
-				geom.x_nodes[node_idx] = xp*std.math.cos(twist[r_idx]) - zp*std.math.sin(twist[r_idx]);
-				geom.y_nodes[node_idx] = rs*radius;
-				geom.z_nodes[node_idx] = xp*std.math.sin(twist[r_idx]) + zp*std.math.cos(twist[r_idx]);
+			static import std.math;
+			immutable xp = p[0]*chord[r_idx];
+			immutable zp = p[1]*chord[r_idx];
+			geom.y_nodes[node_idx] = xp*std.math.cos(twist[r_idx]) - zp*std.math.sin(twist[r_idx]);
+			geom.x_nodes[node_idx] = rs*radius;
+			geom.z_nodes[node_idx] = xp*std.math.sin(twist[r_idx]) + zp*std.math.cos(twist[r_idx]);
 
-				node_idx++;
-			}
+			node_idx++;
 		}
+	}
 
-		node_idx = 0;
+	node_idx = 0;
+	foreach(p_idx, p; airfoil_xsection) {
 		foreach(r_idx, rs; radial_stations) {
-			foreach(p_idx, p; naca0012) {
+			immutable n1 = p_idx*radial_stations.length + r_idx - 1;
+			immutable n2 = p_idx*radial_stations.length + r_idx + 1;
+			immutable n3 = (p_idx - 1)*radial_stations.length + r_idx;
+			immutable n4 = (p_idx + 1)*radial_stations.length + r_idx;
 
-				immutable n1 = r_idx*naca0012.length + p_idx - 1;
-				immutable n2 = r_idx*naca0012.length + p_idx + 1;
-				immutable n3 = (r_idx - 1)*naca0012.length + p_idx;
-				immutable n4 = (r_idx + 1)*naca0012.length + p_idx;
+			if(r_idx == 0) {
+				if(p_idx == 0) {
+					// only use n2, n4, and node_idx
 
-				if(r_idx == 0) {
-					if(p_idx == 0) {
-						// only use n2, n4, and node_idx
+					immutable n2n = Vec3(
+						geom.x_nodes[n2] - geom.x_nodes[node_idx],
+						geom.y_nodes[n2] - geom.y_nodes[node_idx],
+						geom.z_nodes[n2] - geom.z_nodes[node_idx]
+					);
 
-						immutable n2n = Vec3(
-							geom.x_nodes[n2] - geom.x_nodes[node_idx],
-							geom.y_nodes[n2] - geom.y_nodes[node_idx],
-							geom.z_nodes[n2] - geom.z_nodes[node_idx]
-						);
+					immutable n4n = Vec3(
+						geom.x_nodes[n4] - geom.x_nodes[node_idx],
+						geom.y_nodes[n4] - geom.y_nodes[node_idx],
+						geom.z_nodes[n4] - geom.z_nodes[node_idx]
+					);
 
-						immutable n4n = Vec3(
-							geom.x_nodes[n4] - geom.x_nodes[node_idx],
-							geom.y_nodes[n4] - geom.y_nodes[node_idx],
-							geom.z_nodes[n4] - geom.z_nodes[node_idx]
-						);
+					immutable normal = n2n.cross(n4n).normalize;
 
-						immutable normal = n2n.cross(n4n).normalize;
+					geom.x_normals[node_idx] = normal[0];
+					geom.y_normals[node_idx] = normal[1];
+					geom.z_normals[node_idx] = normal[2];
 
-						geom.x_normals[node_idx] = normal[0];
-						geom.y_normals[node_idx] = normal[1];
-						geom.z_normals[node_idx] = normal[2];
+				} else if(p_idx == airfoil_xsection.length - 1) {
+					// only use n1, n4, and node_idx
 
-					} else if(p_idx == naca0012.length - 1) {
-						// only use n1, n4, and node_idx
+					immutable n1n = Vec3(
+						geom.x_nodes[n3] - geom.x_nodes[node_idx],
+						geom.y_nodes[n3] - geom.y_nodes[node_idx],
+						geom.z_nodes[n3] - geom.z_nodes[node_idx]
+					);
 
-						immutable n1n = Vec3(
-							geom.x_nodes[n1] - geom.x_nodes[node_idx],
-							geom.y_nodes[n1] - geom.y_nodes[node_idx],
-							geom.z_nodes[n1] - geom.z_nodes[node_idx]
-						);
+					immutable n4n = Vec3(
+						geom.x_nodes[n2] - geom.x_nodes[node_idx],
+						geom.y_nodes[n2] - geom.y_nodes[node_idx],
+						geom.z_nodes[n2] - geom.z_nodes[node_idx]
+					);
 
-						immutable n4n = Vec3(
-							geom.x_nodes[n4] - geom.x_nodes[node_idx],
-							geom.y_nodes[n4] - geom.y_nodes[node_idx],
-							geom.z_nodes[n4] - geom.z_nodes[node_idx]
-						);
+					immutable normal = n4n.cross(n1n).normalize;
 
-						immutable normal = n4n.cross(n1n).normalize;
+					geom.x_normals[node_idx] = normal[0];
+					geom.y_normals[node_idx] = normal[1];
+					geom.z_normals[node_idx] = normal[2];
 
-						geom.x_normals[node_idx] = normal[0];
-						geom.y_normals[node_idx] = normal[1];
-						geom.z_normals[node_idx] = normal[2];
-
-					} else {
-						// only use n1, n2, n4, and node_idx
-
-						immutable n1n = Vec3(
-							geom.x_nodes[n1] - geom.x_nodes[node_idx],
-							geom.y_nodes[n1] - geom.y_nodes[node_idx],
-							geom.z_nodes[n1] - geom.z_nodes[node_idx]
-						);
-
-						immutable n4n = Vec3(
-							geom.x_nodes[n4] - geom.x_nodes[node_idx],
-							geom.y_nodes[n4] - geom.y_nodes[node_idx],
-							geom.z_nodes[n4] - geom.z_nodes[node_idx]
-						);
-
-						immutable n2n = Vec3(
-							geom.x_nodes[n2] - geom.x_nodes[node_idx],
-							geom.y_nodes[n2] - geom.y_nodes[node_idx],
-							geom.z_nodes[n2] - geom.z_nodes[node_idx]
-						);
-
-						immutable normal1 = n4n.cross(n1n).normalize;
-						immutable normal2 = n2n.cross(n4n).normalize;
-
-						// Average the 2 local face normals for the vert normal
-						immutable ave_norm = 0.5*(normal1 + normal2).normalize;
-						geom.x_normals[node_idx] = ave_norm[0];
-						geom.y_normals[node_idx] = ave_norm[1];
-						geom.z_normals[node_idx] = ave_norm[2];
-					}
-				} else if(r_idx == radial_stations.length - 1) {
-					if(p_idx == 0) {
-						// only use n2, n3, and node_idx
-
-						immutable n2n = Vec3(
-							geom.x_nodes[n2] - geom.x_nodes[node_idx],
-							geom.y_nodes[n2] - geom.y_nodes[node_idx],
-							geom.z_nodes[n2] - geom.z_nodes[node_idx]
-						);
-
-						immutable n3n = Vec3(
-							geom.x_nodes[n3] - geom.x_nodes[node_idx],
-							geom.y_nodes[n3] - geom.y_nodes[node_idx],
-							geom.z_nodes[n3] - geom.z_nodes[node_idx]
-						);
-
-						immutable normal = n3n.cross(n2n).normalize;
-
-						geom.x_normals[node_idx] = normal[0];
-						geom.y_normals[node_idx] = normal[1];
-						geom.z_normals[node_idx] = normal[2];
-
-					} else if(p_idx == naca0012.length - 1) {
-						// only use n1, n3, and node_idx
-
-						immutable n1n = Vec3(
-							geom.x_nodes[n1] - geom.x_nodes[node_idx],
-							geom.y_nodes[n1] - geom.y_nodes[node_idx],
-							geom.z_nodes[n1] - geom.z_nodes[node_idx]
-						);
-
-						immutable n3n = Vec3(
-							geom.x_nodes[n3] - geom.x_nodes[node_idx],
-							geom.y_nodes[n3] - geom.y_nodes[node_idx],
-							geom.z_nodes[n3] - geom.z_nodes[node_idx]
-						);
-
-						immutable normal = n1n.cross(n3n).normalize;
-
-						geom.x_normals[node_idx] = normal[0];
-						geom.y_normals[node_idx] = normal[1];
-						geom.z_normals[node_idx] = normal[2];
-
-					} else {
-						// only use n1, n2, n3, and node_idx
-
-						immutable n1n = Vec3(
-							geom.x_nodes[n1] - geom.x_nodes[node_idx],
-							geom.y_nodes[n1] - geom.y_nodes[node_idx],
-							geom.z_nodes[n1] - geom.z_nodes[node_idx]
-						);
-
-						immutable n3n = Vec3(
-							geom.x_nodes[n3] - geom.x_nodes[node_idx],
-							geom.y_nodes[n3] - geom.y_nodes[node_idx],
-							geom.z_nodes[n3] - geom.z_nodes[node_idx]
-						);
-
-						immutable n2n = Vec3(
-							geom.x_nodes[n2] - geom.x_nodes[node_idx],
-							geom.y_nodes[n2] - geom.y_nodes[node_idx],
-							geom.z_nodes[n2] - geom.z_nodes[node_idx]
-						);
-
-						immutable normal1 = n1n.cross(n3n).normalize;
-						immutable normal2 = n3n.cross(n2n).normalize;
-
-						// Average the 2 local face normals for the vert normal
-						immutable ave_norm = 0.5*(normal1 + normal2).normalize;
-						geom.x_normals[node_idx] = ave_norm[0];
-						geom.y_normals[node_idx] = ave_norm[1];
-						geom.z_normals[node_idx] = ave_norm[2];
-					}
 				} else {
-					if(p_idx == 0) {
-						// only use n2, n3, n4, and node_idx
+					// only use n1, n2, n4, and node_idx
 
-						immutable n4n = Vec3(
-							geom.x_nodes[n4] - geom.x_nodes[node_idx],
-							geom.y_nodes[n4] - geom.y_nodes[node_idx],
-							geom.z_nodes[n4] - geom.z_nodes[node_idx]
-						);
+					immutable n1n = Vec3(
+						geom.x_nodes[n1] - geom.x_nodes[node_idx],
+						geom.y_nodes[n1] - geom.y_nodes[node_idx],
+						geom.z_nodes[n1] - geom.z_nodes[node_idx]
+					);
 
-						immutable n3n = Vec3(
-							geom.x_nodes[n3] - geom.x_nodes[node_idx],
-							geom.y_nodes[n3] - geom.y_nodes[node_idx],
-							geom.z_nodes[n3] - geom.z_nodes[node_idx]
-						);
+					immutable n4n = Vec3(
+						geom.x_nodes[n4] - geom.x_nodes[node_idx],
+						geom.y_nodes[n4] - geom.y_nodes[node_idx],
+						geom.z_nodes[n4] - geom.z_nodes[node_idx]
+					);
 
-						immutable n2n = Vec3(
-							geom.x_nodes[n2] - geom.x_nodes[node_idx],
-							geom.y_nodes[n2] - geom.y_nodes[node_idx],
-							geom.z_nodes[n2] - geom.z_nodes[node_idx]
-						);
+					immutable n2n = Vec3(
+						geom.x_nodes[n2] - geom.x_nodes[node_idx],
+						geom.y_nodes[n2] - geom.y_nodes[node_idx],
+						geom.z_nodes[n2] - geom.z_nodes[node_idx]
+					);
 
-						immutable normal1 = n2n.cross(n4n).normalize;
-						immutable normal2 = n3n.cross(n2n).normalize;
+					immutable normal1 = n4n.cross(n1n).normalize;
+					immutable normal2 = n2n.cross(n4n).normalize;
 
-						// Average the 2 local face normals for the vert normal
-						immutable ave_norm = 0.5*(normal1 + normal2).normalize;
-						geom.x_normals[node_idx] = ave_norm[0];
-						geom.y_normals[node_idx] = ave_norm[1];
-						geom.z_normals[node_idx] = ave_norm[2];
-						
-					} else if(p_idx == naca0012.length - 1) {
-						// only use n1, n3, n4, and node_idx
-						immutable n4n = Vec3(
-							geom.x_nodes[n4] - geom.x_nodes[node_idx],
-							geom.y_nodes[n4] - geom.y_nodes[node_idx],
-							geom.z_nodes[n4] - geom.z_nodes[node_idx]
-						);
-
-						immutable n3n = Vec3(
-							geom.x_nodes[n3] - geom.x_nodes[node_idx],
-							geom.y_nodes[n3] - geom.y_nodes[node_idx],
-							geom.z_nodes[n3] - geom.z_nodes[node_idx]
-						);
-
-						immutable n1n = Vec3(
-							geom.x_nodes[n1] - geom.x_nodes[node_idx],
-							geom.y_nodes[n1] - geom.y_nodes[node_idx],
-							geom.z_nodes[n1] - geom.z_nodes[node_idx]
-						);
-
-						immutable normal1 = n4n.cross(n1n).normalize;
-						immutable normal2 = n1n.cross(n3n).normalize;
-
-						// Average the 2 local face normals for the vert normal
-						immutable ave_norm = 0.5*(normal1 + normal2).normalize;
-						geom.x_normals[node_idx] = ave_norm[0];
-						geom.y_normals[node_idx] = ave_norm[1];
-						geom.z_normals[node_idx] = ave_norm[2];
-					} else {
-						// only use all
-						immutable n4n = Vec3(
-							geom.x_nodes[n4] - geom.x_nodes[node_idx],
-							geom.y_nodes[n4] - geom.y_nodes[node_idx],
-							geom.z_nodes[n4] - geom.z_nodes[node_idx]
-						);
-
-						immutable n3n = Vec3(
-							geom.x_nodes[n3] - geom.x_nodes[node_idx],
-							geom.y_nodes[n3] - geom.y_nodes[node_idx],
-							geom.z_nodes[n3] - geom.z_nodes[node_idx]
-						);
-
-						immutable n2n = Vec3(
-							geom.x_nodes[n2] - geom.x_nodes[node_idx],
-							geom.y_nodes[n2] - geom.y_nodes[node_idx],
-							geom.z_nodes[n2] - geom.z_nodes[node_idx]
-						);
-
-						immutable n1n = Vec3(
-							geom.x_nodes[n1] - geom.x_nodes[node_idx],
-							geom.y_nodes[n1] - geom.y_nodes[node_idx],
-							geom.z_nodes[n1] - geom.z_nodes[node_idx]
-						);
-
-						immutable normal1 = n1n.cross(n3n).normalize;
-						immutable normal2 = n3n.cross(n2n).normalize;
-						immutable normal3 = n2n.cross(n4n).normalize;
-						immutable normal4 = n4n.cross(n1n).normalize;
-						
-						// Average the 4 local face normals for the vert normal
-						immutable ave_norm = 0.25*(normal1 + normal2 + normal3 + normal4).normalize;
-						geom.x_normals[node_idx] = ave_norm[0];
-						geom.y_normals[node_idx] = ave_norm[1];
-						geom.z_normals[node_idx] = ave_norm[2];
-					}
+					// Average the 2 local face normals for the vert normal
+					immutable ave_norm = 0.5*(normal1 + normal2).normalize;
+					geom.x_normals[node_idx] = ave_norm[0];
+					geom.y_normals[node_idx] = ave_norm[1];
+					geom.z_normals[node_idx] = ave_norm[2];
 				}
+			} else if(r_idx == radial_stations.length - 1) {
+				if(p_idx == 0) {
+					// only use n2, n3, and node_idx
 
-				geom.x_normals[node_idx] = -geom.x_normals[node_idx];
-				geom.y_normals[node_idx] = -geom.y_normals[node_idx];
-				geom.z_normals[node_idx] = -geom.z_normals[node_idx];
-				
-				node_idx++;
+					immutable n2n = Vec3(
+						geom.x_nodes[n2] - geom.x_nodes[node_idx],
+						geom.y_nodes[n2] - geom.y_nodes[node_idx],
+						geom.z_nodes[n2] - geom.z_nodes[node_idx]
+					);
+
+					immutable n3n = Vec3(
+						geom.x_nodes[n1] - geom.x_nodes[node_idx],
+						geom.y_nodes[n1] - geom.y_nodes[node_idx],
+						geom.z_nodes[n1] - geom.z_nodes[node_idx]
+					);
+
+					immutable normal = n3n.cross(n2n).normalize;
+
+					geom.x_normals[node_idx] = normal[0];
+					geom.y_normals[node_idx] = normal[1];
+					geom.z_normals[node_idx] = normal[2];
+
+				} else if(p_idx == airfoil_xsection.length - 1) {
+					// only use n1, n3, and node_idx
+
+					immutable n1n = Vec3(
+						geom.x_nodes[n1] - geom.x_nodes[node_idx],
+						geom.y_nodes[n1] - geom.y_nodes[node_idx],
+						geom.z_nodes[n1] - geom.z_nodes[node_idx]
+					);
+
+					immutable n3n = Vec3(
+						geom.x_nodes[n3] - geom.x_nodes[node_idx],
+						geom.y_nodes[n3] - geom.y_nodes[node_idx],
+						geom.z_nodes[n3] - geom.z_nodes[node_idx]
+					);
+
+					immutable normal = n1n.cross(n3n).normalize;
+
+					geom.x_normals[node_idx] = normal[0];
+					geom.y_normals[node_idx] = normal[1];
+					geom.z_normals[node_idx] = normal[2];
+
+				} else {
+					// only use n1, n2, n3, and node_idx
+
+					immutable n1n = Vec3(
+						geom.x_nodes[n1] - geom.x_nodes[node_idx],
+						geom.y_nodes[n1] - geom.y_nodes[node_idx],
+						geom.z_nodes[n1] - geom.z_nodes[node_idx]
+					);
+
+					immutable n3n = Vec3(
+						geom.x_nodes[n3] - geom.x_nodes[node_idx],
+						geom.y_nodes[n3] - geom.y_nodes[node_idx],
+						geom.z_nodes[n3] - geom.z_nodes[node_idx]
+					);
+
+					immutable n2n = Vec3(
+						geom.x_nodes[n2] - geom.x_nodes[node_idx],
+						geom.y_nodes[n2] - geom.y_nodes[node_idx],
+						geom.z_nodes[n2] - geom.z_nodes[node_idx]
+					);
+
+					immutable normal1 = n1n.cross(n3n).normalize;
+					immutable normal2 = n3n.cross(n2n).normalize;
+
+					// Average the 2 local face normals for the vert normal
+					immutable ave_norm = 0.5*(normal1 + normal2).normalize;
+					geom.x_normals[node_idx] = ave_norm[0];
+					geom.y_normals[node_idx] = ave_norm[1];
+					geom.z_normals[node_idx] = ave_norm[2];
+				}
+			} else {
+				if(p_idx == 0) {
+					// only use n2, n3, n4, and node_idx
+
+					immutable n4n = Vec3(
+						geom.x_nodes[n4] - geom.x_nodes[node_idx],
+						geom.y_nodes[n4] - geom.y_nodes[node_idx],
+						geom.z_nodes[n4] - geom.z_nodes[node_idx]
+					);
+
+					immutable n3n = Vec3(
+						geom.x_nodes[n1] - geom.x_nodes[node_idx],
+						geom.y_nodes[n1] - geom.y_nodes[node_idx],
+						geom.z_nodes[n1] - geom.z_nodes[node_idx]
+					);
+
+					immutable n2n = Vec3(
+						geom.x_nodes[n2] - geom.x_nodes[node_idx],
+						geom.y_nodes[n2] - geom.y_nodes[node_idx],
+						geom.z_nodes[n2] - geom.z_nodes[node_idx]
+					);
+
+					immutable normal1 = n2n.cross(n4n).normalize;
+					immutable normal2 = n3n.cross(n2n).normalize;
+
+					// Average the 2 local face normals for the vert normal
+					immutable ave_norm = 0.5*(normal1 + normal2).normalize;
+					geom.x_normals[node_idx] = ave_norm[0];
+					geom.y_normals[node_idx] = ave_norm[1];
+					geom.z_normals[node_idx] = ave_norm[2];
+					
+				} else if(p_idx == airfoil_xsection.length - 1) {
+					// only use n1, n3, n4, and node_idx
+					immutable n4n = Vec3(
+						geom.x_nodes[n2] - geom.x_nodes[node_idx],
+						geom.y_nodes[n2] - geom.y_nodes[node_idx],
+						geom.z_nodes[n2] - geom.z_nodes[node_idx]
+					);
+
+					immutable n3n = Vec3(
+						geom.x_nodes[n1] - geom.x_nodes[node_idx],
+						geom.y_nodes[n1] - geom.y_nodes[node_idx],
+						geom.z_nodes[n1] - geom.z_nodes[node_idx]
+					);
+
+					immutable n1n = Vec3(
+						geom.x_nodes[n3] - geom.x_nodes[node_idx],
+						geom.y_nodes[n3] - geom.y_nodes[node_idx],
+						geom.z_nodes[n3] - geom.z_nodes[node_idx]
+					);
+
+					immutable normal1 = n4n.cross(n1n).normalize;
+					immutable normal2 = n1n.cross(n3n).normalize;
+
+					// Average the 2 local face normals for the vert normal
+					immutable ave_norm = 0.5*(normal1 + normal2).normalize;
+					geom.x_normals[node_idx] = ave_norm[0];
+					geom.y_normals[node_idx] = ave_norm[1];
+					geom.z_normals[node_idx] = ave_norm[2];
+				} else {
+					// only use all
+					immutable n4n = Vec3(
+						geom.x_nodes[n4] - geom.x_nodes[node_idx],
+						geom.y_nodes[n4] - geom.y_nodes[node_idx],
+						geom.z_nodes[n4] - geom.z_nodes[node_idx]
+					);
+
+					immutable n3n = Vec3(
+						geom.x_nodes[n3] - geom.x_nodes[node_idx],
+						geom.y_nodes[n3] - geom.y_nodes[node_idx],
+						geom.z_nodes[n3] - geom.z_nodes[node_idx]
+					);
+
+					immutable n2n = Vec3(
+						geom.x_nodes[n2] - geom.x_nodes[node_idx],
+						geom.y_nodes[n2] - geom.y_nodes[node_idx],
+						geom.z_nodes[n2] - geom.z_nodes[node_idx]
+					);
+
+					immutable n1n = Vec3(
+						geom.x_nodes[n1] - geom.x_nodes[node_idx],
+						geom.y_nodes[n1] - geom.y_nodes[node_idx],
+						geom.z_nodes[n1] - geom.z_nodes[node_idx]
+					);
+
+					immutable normal1 = n1n.cross(n3n).normalize;
+					immutable normal2 = n3n.cross(n2n).normalize;
+					immutable normal3 = n2n.cross(n4n).normalize;
+					immutable normal4 = n4n.cross(n1n).normalize;
+					
+					// Average the 4 local face normals for the vert normal
+					immutable ave_norm = 0.25*(normal1 + normal2 + normal3 + normal4).normalize;
+					geom.x_normals[node_idx] = ave_norm[0];
+					geom.y_normals[node_idx] = ave_norm[1];
+					geom.z_normals[node_idx] = ave_norm[2];
+				}
 			}
+
+			node_idx++;
 		}
-
-		return geom;
 	}
 
-	import numd.utility : linspace;
-	
-	// This generates the 1D lifting line where the blade loads go.
-	// Also generate a chord and twist distribution down the blade.
-	auto r = linspace(0.0, 1.0, 24);
-	double[] twist = new double[r.length];
-	double[] real_chord = new double[r.length];
-	real_chord[] = (R/AR);
-	twist[] = 0;
-
-	// This is basically the header of the geometry file.
-	// It includes each zone header as well. Here we have 2
-	// geometry zones: the first for the detailed geometric
-	// description of the blade and the second for the
-	// description of the lifting line where the blade loads
-	// are.
-	auto geometry = ConstantStructuredGeometryFile(
-		"Test parallel geometry file",
-		"Pa",
-		DataAlignment.node_centered,
-		[
-			ConstantStructuredGeometryFile.HeaderType(
-				"Test blade geometry",
-				r.length.to!int,
-				naca0012.length.to!int,
-			),
-			ConstantStructuredGeometryFile.HeaderType(
-				"Test lifting line",
-				r.length.to!int,
-				1
-			)
-		]
-	);
-
-	// Actually generate blade geom.
-	auto blade_geom = generate_blade_geom(r, twist, R, real_chord);
-
-	// Actually generate lifting line geom.
-	auto lifting_line_geometry_data = ConstantGeometryData(r.length);
-	lifting_line_geometry_data.y_nodes[] = r.map!(a => (R*a).to!float).array;
-	lifting_line_geometry_data.x_nodes[] = 0;
-	lifting_line_geometry_data.z_nodes[] = 0;
-
-	lifting_line_geometry_data.x_normals[] = 0;
-	lifting_line_geometry_data.y_normals[] = 0;
-	lifting_line_geometry_data.z_normals[] = 1;
-
-	// We need to init mpi to use any of the functions.
-	mpi_init([]);
-	// Create and write header for geometry file. We pass to it the MPI communicator to use, the file name, an array of the number of nodes for each zone and another array for the number of normals for each zone.
-	auto geometry_file = world_comm.create_geometry_file(geometry, "parallel_geom.dat", [blade_geom.x_nodes.length, lifting_line_geometry_data.x_nodes.length], [blade_geom.x_normals.length, lifting_line_geometry_data.x_normals.length]);
-
-	// Write the blade geometry to the file.
-	geometry_file.append_geometry_data(blade_geom, 0);
-	// Write the lifting line geometry to the file.
-	geometry_file.append_geometry_data(lifting_line_geometry_data, 1);
-
-	// Close the file.
-	geometry_file.close_geometry_file;
-
-	// And we need to shutdown mpi after we are done with it.
-	mpi_shutdown;
-
-	auto serial_geometry_file = create_geometry_file(geometry, "serial_geom.dat", [blade_geom.x_nodes.length, lifting_line_geometry_data.x_nodes.length], [blade_geom.x_normals.length, lifting_line_geometry_data.x_normals.length]);
-
-
-	// Write the blade geometry to the file.
-	serial_geometry_file.append_geometry_data(blade_geom, 0);
-	// Write the lifting line geometry to the file.
-	serial_geometry_file.append_geometry_data(lifting_line_geometry_data, 1);
-
-	serial_geometry_file.close_geometry_file;
-	
-
-	size_t expected_byte_size = 48412;
-	ubyte[] parallel_file_buffer = new ubyte[expected_byte_size];
-
-	auto parallel_file = File("parallel_geom.dat", "rb");
-
-	parallel_file_buffer = parallel_file.rawRead(parallel_file_buffer);
-	parallel_file.close;
-
-	ubyte[] serial_file_buffer = new ubyte[expected_byte_size];
-
-	auto serial_file = File("serial_geom.dat", "rb");
-
-	serial_file_buffer = serial_file.rawRead(serial_file_buffer);
-	serial_file.close;
-
-
-	writeln(serial_file_buffer.length);
-	writeln(parallel_file_buffer.length);
-
-	foreach(index, element; parallel_file_buffer) {
-		assert(element == serial_file_buffer [index], "Parallel and serial file outputs do not agree at index. " ~ index.to!string);
-	}
-
-	assert(parallel_file_buffer.equal(serial_file_buffer), "Parallel and serial file outputs do not agree.");
+	return geom;
 }
-+/

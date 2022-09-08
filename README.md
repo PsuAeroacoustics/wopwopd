@@ -52,6 +52,7 @@ This command builds the library without vtk support as a portable release build 
 
 ### Build Types (`-b`)
 
+There are number of supported build modes listed below. Note that the build types for AVX usage will not impact the performance of this library significantly and are more a holdover from other projects where they do have a significant impact.
 
 | Configuration                      | Description                                    |
 |------------------------------------|------------------------------------------------|

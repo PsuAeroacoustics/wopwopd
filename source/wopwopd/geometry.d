@@ -188,6 +188,39 @@ struct ConstantGeometryData {
 	}
 }
 
+struct NonconstantGeometryData {
+	float time;
+
+	float[] x_nodes;
+	float[] y_nodes;
+	float[] z_nodes;
+
+	float[] x_normals;
+	float[] y_normals;
+	float[] z_normals;
+
+	this(ref NonconstantGeometryData geo_data) {
+		this.time = geo_data.time;
+		this.x_nodes = geo_data.x_nodes;
+		this.y_nodes = geo_data.y_nodes;
+		this.z_nodes = geo_data.z_nodes;
+
+		this.x_normals = geo_data.x_normals;
+		this.y_normals = geo_data.y_normals;
+		this.z_normals = geo_data.z_normals;
+	}
+
+	this(size_t num_nodes) {
+		x_nodes = new float[num_nodes];
+		y_nodes = new float[num_nodes];
+		z_nodes = new float[num_nodes];
+		
+		x_normals = new float[num_nodes];
+		y_normals = new float[num_nodes];
+		z_normals = new float[num_nodes];
+	}
+}
+
 struct GeometryFileHandle {
 	static if(have_mpi) {
 		MPI_File mpi_file;
@@ -408,27 +441,31 @@ static if(have_mpi) @trusted private void append_geometry_data_mpi(GeometryData)
 }
 
 static if(!have_mpi) @trusted private void append_geometry_data_serial(GeometryData)(ref GeometryFileHandle patch_file, ref GeometryData patch_data, size_t zone = 0) {
-	static if(is(GeometryData == ConstantGeometryData)) {
+	static if(is(GeometryData == NonconstantGeometryData)) {
+		float[1] time = patch_data.time;
+		patch_file.serial_file.rawWrite(time);
+	}
+	//static if(is(GeometryData == ConstantGeometryData)) {
 
-		enforce(
-			(patch_data.x_nodes.length == patch_data.y_nodes.length) &&
-			(patch_data.x_nodes.length == patch_data.z_nodes.length)
-		);
+	enforce(
+		(patch_data.x_nodes.length == patch_data.y_nodes.length) &&
+		(patch_data.x_nodes.length == patch_data.z_nodes.length)
+	);
 
-		enforce(
-			(patch_data.x_normals.length == patch_data.y_normals.length) &&
-			(patch_data.x_normals.length == patch_data.z_normals.length)
-		);
+	enforce(
+		(patch_data.x_normals.length == patch_data.y_normals.length) &&
+		(patch_data.x_normals.length == patch_data.z_normals.length)
+	);
 
-		patch_file.serial_file.rawWrite(patch_data.x_nodes);
-		patch_file.serial_file.rawWrite(patch_data.y_nodes);
-		patch_file.serial_file.rawWrite(patch_data.z_nodes);
-		patch_file.serial_file.rawWrite(patch_data.x_normals);
-		patch_file.serial_file.rawWrite(patch_data.y_normals);
-		patch_file.serial_file.rawWrite(patch_data.z_normals);
-	} else {
-		static assert("Cannot export non-constant patch data");
-	} 
+	patch_file.serial_file.rawWrite(patch_data.x_nodes);
+	patch_file.serial_file.rawWrite(patch_data.y_nodes);
+	patch_file.serial_file.rawWrite(patch_data.z_nodes);
+	patch_file.serial_file.rawWrite(patch_data.x_normals);
+	patch_file.serial_file.rawWrite(patch_data.y_normals);
+	patch_file.serial_file.rawWrite(patch_data.z_normals);
+	//} else {
+	//	static assert("Cannot export non-constant patch data");
+	//} 
 }
 		
 

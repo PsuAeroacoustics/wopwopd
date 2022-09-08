@@ -3,6 +3,7 @@ module wopwopd.python;
 import wopwopd.python.namelist;
 import wopwopd.python.geometry;
 import wopwopd.python.loading;
+import wopwopd.python.output;
 
 import pyd.pyd;
 
@@ -10,12 +11,14 @@ extern(C) void PydMain() {
     python_namelist_function_wraps;
     python_geometry_function_wraps;
 	python_loading_function_wraps;
+	python_output_function_wraps;
 
 	module_init;
 
     python_namelist_class_wraps;
     python_geometry_class_wraps;
 	python_loading_class_wraps;
+	python_output_class_wraps;
 }
 
 // Boilerplate take from Pyd so I don't have to use distutils to build

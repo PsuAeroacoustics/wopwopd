@@ -15,6 +15,7 @@
 				"source/wopwopd/python/package.d",
 				"source/wopwopd/python/geometry.d",
 				"source/wopwopd/python/namelist.d",
+				"source/wopwopd/python/output.d",
 				"source/wopwopd/python/loading.d"
 			]
 		},
@@ -79,7 +80,7 @@
 		},
 		"debug-native": {
 			"buildOptions": ["debugMode", "debugInfo"],
-			"dflags": ["-mcpu=native"]
+			"dflags": ["-mcpu=native", "--gc", "-g"]
 		},
 		"debug-native-openmpi": {
 			"buildOptions": ["debugMode", "debugInfo"],

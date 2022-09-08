@@ -72,6 +72,22 @@ class GeometryFile {
 
 }
 
+GeometryFile AperiodicUnstructuredGeometryFile(string comment, string units, wopwopd.DataAlignment data_alignment, wopwopd.AperiodicUnstructuredGeometryHeader[] zone_headers) {
+	return new GeometryFile(comment, units, data_alignment, zone_headers);
+}
+
+GeometryFile PeriodicUnstructuredGeometryFile(string comment, string units, wopwopd.DataAlignment data_alignment, wopwopd.PeriodicUnstructuredGeometryHeader[] zone_headers) {
+	return new GeometryFile(comment, units, data_alignment, zone_headers);
+}
+
+GeometryFile ConstantUnstructuredGeometryFile(string comment, string units, wopwopd.DataAlignment data_alignment, wopwopd.ConstantUnstructuredGeometryHeader[] zone_headers) {
+	return new GeometryFile(comment, units, data_alignment, zone_headers);
+}
+
+GeometryFile ConstantStructuredGeometryFile(string comment, string units, wopwopd.DataAlignment data_alignment, wopwopd.ConstantStructuredGeometryHeader[] zone_headers) {
+	return new GeometryFile(comment, units, data_alignment, zone_headers);
+}
+
 wopwopd.GeometryFileHandle create_geometry_file(GeometryFile patch_file, string filename) {
     if(patch_file.aperiodic_unstructured_geo_file !is null) {
         return wopwopd.create_geometry_file(*patch_file.aperiodic_unstructured_geo_file, filename);
@@ -90,79 +106,158 @@ class GeometryData {
     import pyd.extra : d_to_python_numpy_ndarray;
 
     wopwopd.ConstantGeometryData* constant_geo_data;
+    wopwopd.NonconstantGeometryData* nonconstant_geo_data;
 
     this(ref wopwopd.ConstantGeometryData geo_data) {
         constant_geo_data = new wopwopd.ConstantGeometryData(geo_data);
+    }
+
+    this(ref wopwopd.NonconstantGeometryData geo_data) {
+        nonconstant_geo_data = new wopwopd.NonconstantGeometryData(geo_data);
     }
 
     this(size_t num_nodes) {
         constant_geo_data = new wopwopd.ConstantGeometryData(num_nodes);
     }
 
-    auto get_x_nodes(size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        return constant_geo_data.x_nodes.d_to_python_numpy_ndarray;
+    this(size_t num_nodes, float time = 0) {
+        nonconstant_geo_data = new wopwopd.NonconstantGeometryData(num_nodes);
     }
 
-    void set_x_nodes(float[] nodes, size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        constant_geo_data.x_nodes[] = nodes[];
+    auto get_x_nodes(size_t timestep = 0) {
+        if(constant_geo_data !is null) {
+            return constant_geo_data.x_nodes.d_to_python_numpy_ndarray;
+        } else if(nonconstant_geo_data !is null) {
+            return nonconstant_geo_data.x_nodes.d_to_python_numpy_ndarray;
+        }
+        enforce(false, "GeometryData has not been initialized");
+        assert(0);
+    }
+
+    void set_x_nodes(float[] nodes, float timestep = 0) {
+        enforce((constant_geo_data !is null) || (nonconstant_geo_data !is null), "GeometryData has not been initialized");
+        if(constant_geo_data !is null) {
+            constant_geo_data.x_nodes[] = nodes[];
+        } else if(nonconstant_geo_data !is null) {
+            nonconstant_geo_data.time = timestep;
+            nonconstant_geo_data.x_nodes[] = nodes[];
+        }
     }
 
     auto get_y_nodes(size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        return constant_geo_data.y_nodes.d_to_python_numpy_ndarray;
+        if(constant_geo_data !is null) {
+            return constant_geo_data.y_nodes.d_to_python_numpy_ndarray;
+        } else if(nonconstant_geo_data !is null) {
+            return nonconstant_geo_data.y_nodes.d_to_python_numpy_ndarray;
+        }
+        enforce(false, "GeometryData has not been initialized");
+        assert(0);
     }
 
-    void set_y_nodes(float[] nodes, size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        constant_geo_data.y_nodes[] = nodes[];
+    void set_y_nodes(float[] nodes, float timestep = 0) {
+        enforce((constant_geo_data !is null) || (nonconstant_geo_data !is null), "GeometryData has not been initialized");
+        if(constant_geo_data !is null) {
+            constant_geo_data.y_nodes[] = nodes[];
+        } else if(nonconstant_geo_data !is null) {
+            nonconstant_geo_data.time = timestep;
+            nonconstant_geo_data.y_nodes[] = nodes[];
+        }
     }
 
     auto get_z_nodes(size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        return constant_geo_data.z_nodes.d_to_python_numpy_ndarray;
+        if(constant_geo_data !is null) {
+            return constant_geo_data.z_nodes.d_to_python_numpy_ndarray;
+        } else if(nonconstant_geo_data !is null) {
+            return nonconstant_geo_data.z_nodes.d_to_python_numpy_ndarray;
+        }
+        enforce(false, "GeometryData has not been initialized");
+        assert(0);
     }
 
-    void set_z_nodes(float[] nodes, size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        constant_geo_data.z_nodes[] = nodes[];
+    void set_z_nodes(float[] nodes, float timestep = 0) {
+        enforce((constant_geo_data !is null) || (nonconstant_geo_data !is null), "GeometryData has not been initialized");
+        if(constant_geo_data !is null) {
+            constant_geo_data.z_nodes[] = nodes[];
+        } else if(nonconstant_geo_data !is null) {
+            nonconstant_geo_data.time = timestep;
+            nonconstant_geo_data.z_nodes[] = nodes[];
+        }
     }
 
     auto get_x_normals(size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        return constant_geo_data.x_normals.d_to_python_numpy_ndarray;
+        if(constant_geo_data !is null) {
+            return constant_geo_data.x_normals.d_to_python_numpy_ndarray;
+        } else if(nonconstant_geo_data !is null) {
+            return nonconstant_geo_data.x_normals.d_to_python_numpy_ndarray;
+        }
+        enforce(false, "GeometryData has not been initialized");
+        assert(0);
     }
 
-    void set_x_normals(float[] normals, size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        constant_geo_data.x_normals[] = normals[];
+    void set_x_normals(float[] normals, float timestep = 0) {
+        enforce((constant_geo_data !is null) || (nonconstant_geo_data !is null), "GeometryData has not been initialized");
+        if(constant_geo_data !is null) {
+            constant_geo_data.x_normals[] = normals[];
+        } else if(nonconstant_geo_data !is null) {
+            nonconstant_geo_data.time = timestep;
+            nonconstant_geo_data.x_normals[] = normals[];
+        }
     }
 
     auto get_y_normals(size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        return constant_geo_data.y_normals.d_to_python_numpy_ndarray;
+        if(constant_geo_data !is null) {
+            return constant_geo_data.y_normals.d_to_python_numpy_ndarray;
+        } else if(nonconstant_geo_data !is null) {
+            return nonconstant_geo_data.y_normals.d_to_python_numpy_ndarray;
+        }
+        enforce(false, "GeometryData has not been initialized");
+        assert(0);
     }
 
-    void set_y_normals(float[] normals, size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        constant_geo_data.y_normals[] = normals[];
+    void set_y_normals(float[] normals, float timestep = 0) {
+        enforce((constant_geo_data !is null) || (nonconstant_geo_data !is null), "GeometryData has not been initialized");
+        if(constant_geo_data !is null) {
+            constant_geo_data.y_normals[] = normals[];
+        } else if(nonconstant_geo_data !is null) {
+            nonconstant_geo_data.time = timestep;
+            nonconstant_geo_data.y_normals[] = normals[];
+        }
     }
 
     auto get_z_normals(size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        return constant_geo_data.z_normals.d_to_python_numpy_ndarray;
+        if(constant_geo_data !is null) {
+            return constant_geo_data.z_normals.d_to_python_numpy_ndarray;
+        } else if(nonconstant_geo_data !is null) {
+            return nonconstant_geo_data.z_normals.d_to_python_numpy_ndarray;
+        }
+        enforce(false, "GeometryData has not been initialized");
+        assert(0);
     }
 
-    void set_z_normals(float[] normals, size_t timestep = 0) {
-        enforce(constant_geo_data !is null, "GeometryData has not been initialized");
-        constant_geo_data.z_normals[] = normals[];
+    void set_z_normals(float[] normals, float timestep = 0) {
+        enforce((constant_geo_data !is null) || (nonconstant_geo_data !is null), "GeometryData has not been initialized");
+        if(constant_geo_data !is null) {
+            constant_geo_data.z_normals[] = normals[];
+        } else if(nonconstant_geo_data !is null) {
+            nonconstant_geo_data.time = timestep;
+            nonconstant_geo_data.z_normals[] = normals[];
+        }
     }
+}
+
+GeometryData ConstantGeometryData(size_t num_nodes) {
+    return new GeometryData(num_nodes);
+}
+
+GeometryData NonconstantGeometryData(size_t num_nodes) {
+    return new GeometryData(num_nodes, 0.0);
 }
 
 void append_geometry_data(wopwopd.GeometryFileHandle patch_file, GeometryData patch_data, int zone = 0) {
     if(patch_data.constant_geo_data !is null) {
         wopwopd.append_geometry_data(patch_file, *patch_data.constant_geo_data, zone);
+    } else if(patch_data.nonconstant_geo_data !is null) {
+        wopwopd.append_geometry_data(patch_file, *patch_data.nonconstant_geo_data, zone);
     }
 }
 
@@ -191,6 +286,14 @@ void python_geometry_function_wraps() {
     def!DataAlignment_node_centered;
     def!DataAlignment_face_centered;
     def!(wopwopd.close_geometry_file);
+
+    def!AperiodicUnstructuredGeometryFile;
+    def!PeriodicUnstructuredGeometryFile;
+    def!ConstantUnstructuredGeometryFile;
+    def!ConstantStructuredGeometryFile;
+
+    def!ConstantGeometryData;
+    def!NonconstantGeometryData;
 }
 
 void python_geometry_class_wraps() {

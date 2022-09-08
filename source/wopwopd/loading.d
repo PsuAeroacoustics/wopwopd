@@ -66,18 +66,20 @@ struct ConstantUnstructuredHeader {
 struct PeriodicUnstructuredHeader {
 	@wopwop char[32] name;
 	@wopwop float period;
+	@wopwop int timesteps;
 	@wopwop int number_of_data_points;
 	int zone;
 	bool compute_thickness;
 	bool has_data;
 
-	this(string name, float period, int number_of_data_points, int zone = 0, bool compute_thickness = true, bool has_data = true) {
+	this(string name, float period, int timesteps, int number_of_data_points, int zone = 0, bool compute_thickness = true, bool has_data = true) {
 		this.zone = zone;
 		this.compute_thickness = compute_thickness;
 		this.name[] = '\0';
 		auto range = name.length > this.name.length ? this.name.length : name.length;
 		this.name[0..range] = name[0..range];
 		this.period = period;
+		this.timesteps = timesteps;
 		this.number_of_data_points = number_of_data_points;
 		this.has_data = has_data;
 	}
@@ -126,19 +128,21 @@ struct ConstantStructuredHeader {
 struct PeriodicStructuredHeader {
 	@wopwop char[32] name;
 	@wopwop float period;
+	@wopwop int steps;
 	@wopwop int i_max;
 	@wopwop int j_max;
 	int zone;
 	bool compute_thickness;
 	bool has_data;
 
-	this(string name, float period, int i_max, int j_max, int zone = 0, bool compute_thickness = true, bool has_data = true) {
+	this(string name, float period, int steps, int i_max, int j_max, int zone = 0, bool compute_thickness = true, bool has_data = true) {
 		this.zone = zone;
 		this.compute_thickness = compute_thickness;
 		this.name[] = '\0';
 		auto range = name.length > this.name.length ? this.name.length : name.length;
 		this.name[0..range] = name[0..range];
 		this.period = period;
+		this.steps = steps;
 		this.i_max = i_max;
 		this.j_max = j_max;
 		this.has_data = has_data;

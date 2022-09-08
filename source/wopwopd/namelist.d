@@ -589,7 +589,7 @@ private ObserverIn parse_observerin_namelist(R)(auto ref R range) {
 
 	t = parse_section!ObserverIn(observer_block);
 
-	while(parse_block_type(range.front.front) == BlockType.CB) {
+	while(!range.empty && !range.front.empty && parse_block_type(range.front.front) == BlockType.CB) {
 		auto cb_block = range.front;
 		range.popFront;
 
@@ -599,7 +599,7 @@ private ObserverIn parse_observerin_namelist(R)(auto ref R range) {
 	}
 
 	// Skip ObserverIn sub namelists that we do not support
-	while(parse_block_type(range.front.front) == BlockType.Unknown) {
+	while(!range.empty && !range.front.empty && parse_block_type(range.front.front) == BlockType.Unknown) {
 		writeln("WARNING: Skipping un-supported ", range.front.front, " namelist");
 		range.popFront;
 	}
@@ -681,30 +681,34 @@ private Namelist parse_namelist_impl(F)(auto ref F file) {
 
 	Namelist namelist;
 
-	auto environment_block = namelist_blocks.front;
-	namelist_blocks.popFront;
+	if(!namelist_blocks.empty) {
+		auto environment_block = namelist_blocks.front;
+		namelist_blocks.popFront;
 
-	enforce(parse_block_type(environment_block.front) == BlockType.EnvironmentIn, "EnvironmentIn namelist expected");
-	environment_block.popFront;
-	namelist.environment_in = parse_section!EnvironmentIn(environment_block);
+		enforce(parse_block_type(environment_block.front) == BlockType.EnvironmentIn, "EnvironmentIn namelist expected");
+		environment_block.popFront;
+		namelist.environment_in = parse_section!EnvironmentIn(environment_block);
+	}
 
-	auto constants_block = namelist_blocks.front;
-	namelist_blocks.popFront;
+	if(!namelist_blocks.empty) {
+		auto constants_block = namelist_blocks.front;
+		namelist_blocks.popFront;
 
-	enforce(parse_block_type(constants_block.front) == BlockType.EnvironmentConstants, "EnvironmentConstants namelist expected");
-	constants_block.popFront;
-	namelist.environment_constants = parse_section!EnvironmentConstants(constants_block);
+		enforce(parse_block_type(constants_block.front) == BlockType.EnvironmentConstants, "EnvironmentConstants namelist expected");
+		constants_block.popFront;
+		namelist.environment_constants = parse_section!EnvironmentConstants(constants_block);
+	}
 
-	while(parse_block_type(namelist_blocks.front.front) == BlockType.ObserverIn) {
+	while(!namelist_blocks.empty && !namelist_blocks.front.empty && parse_block_type(namelist_blocks.front.front) == BlockType.ObserverIn) {
 		namelist.observers ~= parse_observerin_namelist(namelist_blocks);
 	}
 
 	// Fast forward to containers as we don't support walls n' such
-	while(parse_block_type(namelist_blocks.front.front) != BlockType.ContainerIn) {
+	while(!namelist_blocks.empty && !namelist_blocks.front.empty && parse_block_type(namelist_blocks.front.front) != BlockType.ContainerIn) {
 		namelist_blocks.popFront;
 	}
 
-	while(!namelist_blocks.empty && parse_block_type(namelist_blocks.front.front) == BlockType.ContainerIn) {
+	while(!namelist_blocks.empty && !namelist_blocks.front.empty && parse_block_type(namelist_blocks.front.front) == BlockType.ContainerIn) {
 		namelist.containers ~= parse_containerin_namelist(namelist_blocks);
 	}
 

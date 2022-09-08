@@ -209,6 +209,19 @@ template NamelistWrap(S) {
 	mixin(build_wrapped_props());
 }
 
+class Casename {
+	mixin NamelistWrap!(wopwopd.namelist.Casename);
+
+	this() {
+
+	}
+
+	this(ref wopwopd.namelist.Casename cn) {
+		internal = cn;
+	}
+
+}
+
 class Namelist {
 	mixin NamelistWrap!(wopwopd.namelist.Namelist);
 
@@ -444,6 +457,11 @@ void python_namelist_class_wraps() {
 	mixin(wrap_namelist_class!ObserverIn);
 	mixin(wrap_namelist_class!ContainerIn);
 	mixin(wrap_namelist_class!CB);
+	mixin(wrap_namelist_class!Casename);
+
+	wrap_struct!(
+		wopwopd.namelist.CaseList
+	);
 
 	wrap_struct!(
 		WindowFunction,

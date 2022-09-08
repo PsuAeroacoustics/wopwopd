@@ -25,6 +25,50 @@
 			"targetType": "executable"
 		},
 		{
+			"name": "library-python33",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python33"
+			}
+		},
+		{
+			"name": "library-python34",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python34"
+			}
+		},
+		{
+			"name": "library-python35",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python35"
+			}
+		},
+		{
+			"name": "library-python36",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python36"
+			}
+		},
+		{
 			"name": "library-python37",
 			"targetName": "wopwopd",
 			"targetType": "dynamicLibrary",
@@ -33,6 +77,17 @@
 			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
 			"subConfigurations": {
 				"pyd": "python37"
+			}
+		},
+		{
+			"name": "library-python38",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python38"
 			}
 		},
 		{

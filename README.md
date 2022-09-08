@@ -69,5 +69,5 @@ There are number of supported build modes listed below. Note that the build type
 | Build Type                    | Description                                                                 |
 |-------------------------------|-----------------------------------------------------------------------------|
 | `library`                       | Builds the dynamic library for use with other D code. No python wrappers included |
-| `library-python<version>`       | Builds the dynamic library for use with other D code. Python wrappers are built for the specific version of python. <version> can be any of 37,39,310 |
+| `library-python<version>`       | Builds the dynamic library for use with other D code. Python wrappers are built for the specific version of python. <version> can be any of 33, 34, 35, 36, 37, 38, 39, or 310 |
 

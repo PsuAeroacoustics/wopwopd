@@ -48,7 +48,7 @@ Once all the dependencies have been installed, run the following command to buil
 	dub build -c library -b release --compiler=ldc2
 ```
 
-This command builds the library without vtk support as a portable release build using the ldc compiler. There are a number of different configurations and build types that can be used.
+This command builds the library as a portable release build using the ldc compiler. There are a number of different configurations and build types that can be used.
 
 ### Build Types (`-b`)
 

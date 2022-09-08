@@ -1,7 +1,7 @@
 {
 	"name": "wopwopd",
 	"description": "Dlang OpenWopwop integration library",
-	"copyright": "Copyright © 2019, Robert F. Rau II (Pennsylvania State University)",
+	"copyright": "Copyright © 2022, Robert F. Rau II, The Pennsylvania State University",
 	"authors": ["Robert F. Rau II"],
 	"targetType": "library",
 	"dependencies": {

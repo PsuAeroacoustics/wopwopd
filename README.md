@@ -7,7 +7,7 @@ wopwopd is a library for easily creating the input files required for wopwop3. T
 wopwopd has a couple of dependencies that need to be setup and installed first. Some of these are provided as git submodules and are largely transparent to the user. If you are cloning a fresh repository run:
 
 ```
-	git clone --recurse-submodules https://github.com/PsuAeroacoustics/MuRoSim
+	git clone --recurse-submodules https://github.com/PsuAeroacoustics/wopwopd
 ```
 
 If the repository is already cloned, but submodules were not cloned, run the following command to acquire the submodules:

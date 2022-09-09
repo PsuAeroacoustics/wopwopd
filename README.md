@@ -71,3 +71,10 @@ There are number of supported build modes listed below. Note that the build type
 | `library`                       | Builds the dynamic library for use with other D code. No python wrappers included |
 | `library-python<version>`       | Builds the dynamic library for use with other D code. Python wrappers are built for the specific version of python. <version> can be any of 33, 34, 35, 36, 37, 38, 39, or 310 |
 
+## Using in Python
+
+When using this library from python, the directory that libwopwopd.so resides in needs to be in the PYTHONPATH environment variable. This can be set on a per run basis like so::
+
+	PYTHONPATH=/path/to/libwopwopd_directory python3 my_great_python_script.py
+
+or it can be set in your .bashrc. There is probably a more pythonic way to do this that we will implement in the future.

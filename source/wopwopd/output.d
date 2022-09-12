@@ -26,7 +26,7 @@ struct Observer {
 
 struct WopwopResult {
     Observer[] observer_pressures;
-    Observer[][] observer_spectrum;
+    Observer[] observer_spectrum;
     float[] obs_x;
     float[] obs_y;
     float[] obs_z;

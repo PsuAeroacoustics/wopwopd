@@ -1,9 +1,9 @@
 [submodule "dependencies/numd"]
 	path = dependencies/numd
-	url = git@github.com:Rob-Rau/numd.git
+	url = ../../Rob-Rau/numd.git
 [submodule "dependencies/mpid"]
 	path = dependencies/mpid
-	url = git@github.com:PsuAeroacoustics/mpid.git
+	url = ../mpid.git
 [submodule "dependencies/pyd"]
 	path = dependencies/pyd
-	url = git@github.com:Rob-Rau/pyd.git
+	url = ../../Rob-Rau/pyd.git

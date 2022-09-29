@@ -1,13 +1,15 @@
 module wopwopd.python;
 
-import wopwopd.python.namelist;
+import wopwopd.python.execute;
 import wopwopd.python.geometry;
 import wopwopd.python.loading;
+import wopwopd.python.namelist;
 import wopwopd.python.output;
 
 import pyd.pyd;
 
 extern(C) void PydMain() {
+	python_execute_function_wraps;
     python_namelist_function_wraps;
     python_geometry_function_wraps;
 	python_loading_function_wraps;

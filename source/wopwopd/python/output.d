@@ -26,7 +26,11 @@ void python_output_class_wraps() {
     wrap_struct!(
         wopwopd.output.WopwopResult,
         Member!("observer_pressures"),
-        Member!("observer_spectrum")
+        Member!("observer_spectrum"),
+        Member!("oaspl_db"),
+        Member!("oaspl_dba"),
+        Member!("oaspl_db_grid"),
+        Member!("oaspl_dba_grid")
     );
 
     wrap_struct!(
@@ -34,6 +38,13 @@ void python_output_class_wraps() {
         Member!("independent_axis"),
         Member!("function_names"),
         Member!("functions")
+    );
+
+    wrap_struct!(
+        wopwopd.output.Grid,
+        Member!("obs_x"),
+        Member!("obs_y"),
+        Member!("obs_z")
     );
 
     wrap_struct!(

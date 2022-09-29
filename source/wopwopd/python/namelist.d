@@ -199,6 +199,22 @@ template NamelistWrap(S) {
 					props ~= "@property void "~member~"(wopwopd.python.EnvironmentConstants p) {\n";
 					props ~= "\t"~varname~"."~member~" = p.internal;\n";
 					props ~= "}\n";
+				} else static if(is(M == wopwopd.namelist.Namelist)) {
+					props ~= "@property wopwopd.python.Namelist "~member~"() {\n";
+					props ~= "\treturn new Namelist("~varname~"."~member~");\n";
+					props ~= "}\n\n";
+
+					props ~= "@property void "~member~"(wopwopd.python.Namelist p) {\n";
+					props ~= "\t"~varname~"."~member~" = p.internal;\n";
+					props ~= "}\n";
+				} else static if(is(M == wopwopd.namelist.Casename[])) {
+					props ~= "@property wopwopd.python.Casename[] "~member~"() {\n";
+					props ~= "\treturn "~varname~"."~member~".map!(a => new wopwopd.python.Casename(a)).array;\n";
+					props ~= "}\n\n";
+
+					props ~= "@property void "~member~"(wopwopd.python.Casename[] p) {\n";
+					props ~= "\t"~varname~"."~member~" = p.map!(a => a.internal).array;\n";
+					props ~= "}\n";
 				}
 			}
 		}}
@@ -207,6 +223,18 @@ template NamelistWrap(S) {
 	}
 
 	mixin(build_wrapped_props());
+}
+
+class CaseList {
+	mixin NamelistWrap!(wopwopd.namelist.CaseList);
+
+	this() {
+
+	}
+
+	this(ref wopwopd.namelist.CaseList cl) {
+		internal = cl;
+	}
 }
 
 class Casename {
@@ -219,7 +247,6 @@ class Casename {
 	this(ref wopwopd.namelist.Casename cn) {
 		internal = cn;
 	}
-
 }
 
 class Namelist {
@@ -426,6 +453,7 @@ Namelist parse_namelist(string filename) {
 }
 
 void python_namelist_function_wraps() {
+	def!(wopwopd.namelist.write_caselist);
     def!(write_namelist);
 	def!(parse_namelist);
 
@@ -458,10 +486,12 @@ void python_namelist_class_wraps() {
 	mixin(wrap_namelist_class!ContainerIn);
 	mixin(wrap_namelist_class!CB);
 	mixin(wrap_namelist_class!Casename);
+	mixin(wrap_namelist_class!CaseList);
 
-	wrap_struct!(
-		wopwopd.namelist.CaseList
-	);
+	/+wrap_struct!(
+		wopwopd.namelist.CaseList,
+		Member!"cases"
+	);+/
 
 	wrap_struct!(
 		WindowFunction,

@@ -67,6 +67,7 @@ alias OptionalWindowFunction = Nullable!WindowFunction;
 struct Casename {
 	OptionalString globalFolderName;
 	OptionalString caseNameFile;
+	Namelist namelist;
 }
 
 struct CaseList {
@@ -433,7 +434,7 @@ void write_namelist_struct(F, S)(auto ref F file, auto ref S s) {
 	file.writeln("&", S.stringof);
 
 	static foreach(m_idx, member; FieldNameTuple!S) {{
-		static if((member == "cobs") || (member == "children") || (member == "ranges")) {
+		static if((member == "cobs") || (member == "children") || (member == "ranges") || (member == "namelist")) {
 			alias SaveType = field_types[m_idx];
 			SaveType value;
 			bool skip = true;

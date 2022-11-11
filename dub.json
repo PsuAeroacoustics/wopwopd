@@ -16,7 +16,8 @@
 				"source/wopwopd/python/geometry.d",
 				"source/wopwopd/python/namelist.d",
 				"source/wopwopd/python/output.d",
-				"source/wopwopd/python/loading.d"
+				"source/wopwopd/python/loading.d",
+				"source/wopwopd/python/execute.d"
 			]
 		},
 		{

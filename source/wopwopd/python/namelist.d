@@ -91,6 +91,18 @@ template NamelistWrap(S) {
 					props ~= "@property void "~member~"(wopwopd.namelist.FVec3 p) {\n";
 					props ~= "\t"~varname~"."~member~" = p;\n";
 					props ~= "}\n";
+				} else static if(is(M == wopwopd.namelist.OptionalBPMIn)) {
+					props ~= "@property wopwopd.python.BPMIn "~member~"() {\n";
+					props ~= "\tif(!"~varname~"."~member~".isNull) {\n";
+					props ~= "\t\treturn new BPMIn("~varname~"."~member~".get);\n";
+					props ~= "\t} else {\n";
+					props ~= "\t\tthrow new Exception(\""~member~" has not been set and is null\");\n";
+					props~= "\t}\n";
+					props ~= "}\n\n";
+
+					props ~= "@property void "~member~"(wopwopd.python.BPMIn p) {\n";
+					props ~= "\t"~varname~"."~member~" = p.internal;\n";
+					props ~= "}\n";
 				} else static if(is(M == wopwopd.namelist.OptionalWindowFunction)) {
 					props ~= "@property WindowFunction "~member~"() {\n";
 					props ~= "\tif(!"~varname~"."~member~".isNull) {\n";
@@ -150,6 +162,42 @@ template NamelistWrap(S) {
 
 					props ~= "@property void "~member~"(wopwopd.python.AngleType p) {\n";
 					props ~= "\t"~varname~"."~member~" = p.at;\n";
+					props ~= "}\n";
+				} else static if(is(M == wopwopd.namelist.OptionalTripType)) {
+					props ~= "@property wopwopd.python.TripType "~member~"() {\n";
+					props ~= "\tif(!"~varname~"."~member~".isNull) {\n";
+					props ~= "\t\treturn wopwopd.python.TripType("~varname~"."~member~".get);\n";
+					props ~= "\t} else {\n";
+					props ~= "\t\tthrow new Exception(\""~member~" has not been set and is null\");\n";
+					props~= "\t}\n";
+					props ~= "}\n\n";
+
+					props ~= "@property void "~member~"(wopwopd.python.TripType p) {\n";
+					props ~= "\t"~varname~"."~member~" = p.tt;\n";
+					props ~= "}\n";
+				} else static if(is(M == wopwopd.namelist.OptionalUniformType)) {
+					props ~= "@property wopwopd.python.UniformType "~member~"() {\n";
+					props ~= "\tif(!"~varname~"."~member~".isNull) {\n";
+					props ~= "\t\treturn wopwopd.python.UniformType("~varname~"."~member~".get);\n";
+					props ~= "\t} else {\n";
+					props ~= "\t\tthrow new Exception(\""~member~" has not been set and is null\");\n";
+					props~= "\t}\n";
+					props ~= "}\n\n";
+
+					props ~= "@property void "~member~"(wopwopd.python.UniformType p) {\n";
+					props ~= "\t"~varname~"."~member~" = p.ut;\n";
+					props ~= "}\n";
+				} else static if(is(M == wopwopd.namelist.OptionalBPMFlagType)) {
+					props ~= "@property wopwopd.python.BPMFlagType "~member~"() {\n";
+					props ~= "\tif(!"~varname~"."~member~".isNull) {\n";
+					props ~= "\t\treturn wopwopd.python.BPMFlagType("~varname~"."~member~".get);\n";
+					props ~= "\t} else {\n";
+					props ~= "\t\tthrow new Exception(\""~member~" has not been set and is null\");\n";
+					props~= "\t}\n";
+					props ~= "}\n\n";
+
+					props ~= "@property void "~member~"(wopwopd.python.BPMFlagType p) {\n";
+					props ~= "\t"~varname~"."~member~" = p.ft;\n";
 					props ~= "}\n";
 				} else static if(is(M == wopwopd.namelist.CB[])) {
 					props ~= "@property wopwopd.python.CB[] "~member~"() {\n";
@@ -334,6 +382,74 @@ class CB {
 	}
 }
 
+class BPMIn {
+	mixin NamelistWrap!(wopwopd.namelist.BPMIn);
+
+	this() {
+
+	}
+
+	this(ref wopwopd.namelist.BPMIn bpm_in) {
+		internal = bpm_in;
+	}
+}
+
+struct TripType {
+	private wopwopd.namelist.TripType tt;
+
+	string toString() {
+		return tt.to!string;
+	}
+}
+
+TripType TripType_no_trip() {
+	return TripType(wopwopd.namelist.TripType.no_trip);
+}
+
+TripType TripType_soft_trip() {
+	return TripType(wopwopd.namelist.TripType.soft_trip);
+}
+
+TripType TripType_hard_trip() {
+	return TripType(wopwopd.namelist.TripType.hard_trip);
+}
+
+struct UniformType {
+	private wopwopd.namelist.UniformType ut;
+
+	string toString() {
+		return ut.to!string;
+	}
+}
+
+UniformType UniformType_nonuniform() {
+	return UniformType(wopwopd.namelist.UniformType.nonuniform);
+}
+
+UniformType UniformType_uniform() {
+	return UniformType(wopwopd.namelist.UniformType.uniform);
+}
+
+struct BPMFlagType {
+	private wopwopd.namelist.BPMFlagType ft;
+
+	string toString() {
+		return ft;
+	}
+}
+
+BPMFlagType BPMFlagType_compute() {
+	return BPMFlagType(wopwopd.namelist.BPMFlagType.compute);
+}
+
+BPMFlagType BPMFlagType_user_value() {
+	return BPMFlagType(wopwopd.namelist.BPMFlagType.user_value);
+}
+
+BPMFlagType BPMFlagType_file_value() {
+	return BPMFlagType(wopwopd.namelist.BPMFlagType.file_value);
+}
+
 struct WindowFunction {
 	private wopwopd.namelist.WindowFunction wf;
 
@@ -457,6 +573,17 @@ void python_namelist_function_wraps() {
     def!(write_namelist);
 	def!(parse_namelist);
 
+	def!TripType_no_trip;
+	def!TripType_soft_trip;
+	def!TripType_hard_trip;
+
+	def!UniformType_nonuniform;
+	def!UniformType_uniform;
+
+	def!BPMFlagType_compute;
+	def!BPMFlagType_file_value;
+	def!BPMFlagType_user_value;
+
 	def!WindowFunction_hanning_window;
 	def!WindowFunction_blackman_window;
 	def!WindowFunction_flatTop_window;
@@ -487,11 +614,22 @@ void python_namelist_class_wraps() {
 	mixin(wrap_namelist_class!CB);
 	mixin(wrap_namelist_class!Casename);
 	mixin(wrap_namelist_class!CaseList);
+	mixin(wrap_namelist_class!BPMIn);
 
-	/+wrap_struct!(
-		wopwopd.namelist.CaseList,
-		Member!"cases"
-	);+/
+	wrap_struct!(
+		TripType,
+		Repr!(TripType.toString)
+	);
+
+	wrap_struct!(
+		UniformType,
+		Repr!(UniformType.toString)
+	);
+
+	wrap_struct!(
+		BPMFlagType,
+		Repr!(BPMFlagType.toString)
+	);
 
 	wrap_struct!(
 		WindowFunction,

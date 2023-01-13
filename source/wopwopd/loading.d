@@ -18,6 +18,61 @@ import std.traits;
 
 import wopwopd;
 
+struct BPMFileHeader {
+	@wopwop int magic_number = wopwop_magic_number;
+	@wopwop int num_sections;
+	@wopwop int sections_are_uniform;
+	@wopwop int includes_section_chord;
+	@wopwop int includes_section_length;
+	@wopwop int includes_section_te_thickness;
+	@wopwop int includes_scetion_te_flow_angle;
+	@wopwop int includes_tip_lift_curve_slope;
+	@wopwop int includes_section_aoa;
+	@wopwop int includes_section_freestream;
+	@wopwop TimeType time_type;
+	
+	this(int _num_sections, bool _sections_are_uniform, bool _includes_section_chord, bool _includes_section_length, bool _includes_section_te_thickness, bool _includes_scetion_te_flow_angle, bool _includes_tip_lift_curve_slope, bool _includes_section_aoa, bool _includes_section_freestream) {
+		num_sections = _num_sections;
+		sections_are_uniform = _sections_are_uniform;
+		includes_section_chord = _includes_section_chord;
+		includes_section_length = _includes_section_length;
+		includes_section_te_thickness = _includes_section_te_thickness;
+		includes_scetion_te_flow_angle = _includes_scetion_te_flow_angle;
+		includes_tip_lift_curve_slope = _includes_tip_lift_curve_slope;
+		includes_section_aoa = _includes_section_aoa;
+		includes_section_freestream = _includes_section_freestream;
+	}
+}
+
+struct AperiodicBPMInfo {
+	@wopwop int timesteps;
+
+	this(int _timesteps) {
+		timesteps = _timesteps;
+	}
+}
+
+struct BPMFile(TimeType _time_type) {
+	alias time_type = _time_type;
+	BPMFileHeader file_header;
+
+	static if(time_type == TimeType.periodic) {
+		static assert(false, "Periodic BPM files not currently supported");
+	} else static if(time_type == TimeType.aperiodic) {
+		alias InfoType = AperiodicBPMInfo;
+	} else static if(time_type == TimeType.constant) {
+		static assert(false, "Constant BPM files not currently supported");
+	}
+
+	InfoType time_info;
+
+	this(BPMFileHeader _file_header, int _time_steps) {
+		file_header = _file_header;
+		file_header.time_type = time_type;
+		time_info = InfoType(_time_steps);
+	}
+}
+
 struct LoadingFileHeaderT(Structuring _structuring, TimeType _time_type, LoadingType _loading_type) {
 	@wopwop immutable int magic_number = wopwop_magic_number;
 	@wopwop immutable int file_version_1 = 1;
@@ -259,6 +314,112 @@ struct LoadingFileT(LoadingType loading_type) {
 	}
 }
 
+struct BPMFileHandle {
+	File serial_file;
+	BPMFileHeader file_header;
+	TimeType time_type;
+
+	this(File _serial_file, BPMFileHeader _file_header, TimeType _time_type) {
+		serial_file = _serial_file;
+		file_header = _file_header;
+		time_type = _time_type;
+	}
+}
+
+@trusted BPMFileHandle create_bpm_file(TimeType time_type)(BPMFile!time_type bpm_file, string filename, float[] chord, float[] section_length, float[] te_thickness, float[] te_flow_angle) {
+
+	auto serial_file = File(filename, "wb");
+
+	auto file = BPMFileHandle(serial_file, bpm_file.file_header, bpm_file.time_type);
+
+	file.serial_file.serial_write_struct(bpm_file.file_header);
+
+	file.serial_file.serial_write_struct(bpm_file.time_info);
+
+	size_t elements = 0;
+	if(bpm_file.file_header.includes_section_chord) {
+		enforce(chord.length > 0, "File is supposed to include chord length, but none was given");
+		elements = chord.length;
+	}
+
+	if(bpm_file.file_header.includes_section_length) {
+		enforce(section_length.length > 0, "File is supposed to include section length, but none was given");
+
+		if(elements > 0) {
+			enforce(elements == section_length.length, "Section length array does not match expected length of "~elements.to!string);
+		} else {
+			elements = section_length.length;
+		}
+	}
+
+	if(bpm_file.file_header.includes_section_te_thickness) {
+		enforce(te_thickness.length > 0, "File is supposed to include trailing edge thickness, but none was given");
+
+		if(elements > 0) {
+			enforce(elements == te_thickness.length, "Trailing edge thickness array does not match expected length of "~elements.to!string);
+		} else {
+			elements = te_thickness.length;
+		}
+	}
+
+	if(bpm_file.file_header.includes_scetion_te_flow_angle) {
+		enforce(te_flow_angle.length > 0, "File is supposed to include trailing flow angle, but none was given");
+
+		if(elements > 0) {
+			enforce(elements == te_flow_angle.length, "Trailing flow angle array does not match expected length of "~elements.to!string);
+		} else {
+			elements = te_thickness.length;
+		}
+	}
+
+	enforce(elements == bpm_file.file_header.num_sections, "Number of elements found in provided arrays does not match the number of segments specified in the BPM file header");
+
+	foreach(e_idx; 0..elements) {
+		if(bpm_file.file_header.includes_section_chord) {
+			float[1] data = [chord[e_idx]];
+			file.serial_file.rawWrite(data);
+		}
+
+		if(bpm_file.file_header.includes_section_length) {
+			float[1] data = [section_length[e_idx]];
+			file.serial_file.rawWrite(data);
+		}
+
+		if(bpm_file.file_header.includes_section_te_thickness) {
+			float[1] data = [te_thickness[e_idx]];
+			file.serial_file.rawWrite(data);
+		}
+
+		if(bpm_file.file_header.includes_scetion_te_flow_angle) {
+			float[1] data = [te_flow_angle[e_idx]];
+			file.serial_file.rawWrite(data);
+		}
+	}
+
+	return file;
+}
+
+@trusted void append_bpm_data(ref BPMFileHandle file_handle, float t, float[] alpha, float tip_lcs, float[] u) {
+
+	float[1] data;
+	if(file_handle.time_type != TimeType.constant) {
+		data[0] = t;
+		file_handle.serial_file.rawWrite(data);
+	}
+
+	if(file_handle.file_header.includes_section_aoa) {
+		file_handle.serial_file.rawWrite(alpha);
+	}
+
+	if(file_handle.file_header.includes_tip_lift_curve_slope) {
+		data[0] = tip_lcs;
+		file_handle.serial_file.rawWrite(data);
+	}
+
+	if(file_handle.file_header.includes_section_freestream) {
+		file_handle.serial_file.rawWrite(u);
+	}
+}
 
 @trusted LoadingFileT!(LoadingFileType.loading_type) open_loading_file_append(LoadingFileType)(auto ref LoadingFileType loading_file, string filename) {
 	LoadingFileT!(LoadingFileType.loading_type) file;

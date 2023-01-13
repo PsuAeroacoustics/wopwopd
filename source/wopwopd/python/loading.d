@@ -397,6 +397,12 @@ auto ReferenceFrame_patch_fixed() {
 	return wopwopd.ReferenceFrame.patch_fixed;
 }
 
+alias AperiodicBPMFile = wopwopd.loading.BPMFile!(wopwopd.TimeType.aperiodic);
+
+wopwopd.loading.BPMFileHandle create_aperiodic_bpm_file(ref AperiodicBPMFile bpm_file, string filename, float[] chord, float[] section_length, float[] te_thickness, float[] te_flow_angle) {
+	return wopwopd.loading.create_bpm_file(bpm_file, filename, chord, section_length, te_thickness, te_flow_angle);
+}
+
 void python_loading_function_wraps() {
 	def!ReferenceFrame_stationary_ground_fixed;
 	def!ReferenceFrame_rotating_ground_fixed;
@@ -421,10 +427,24 @@ void python_loading_function_wraps() {
 	def!ConstStructuredPressureLoadingFile;
 	def!AperiodicStructuredPressureLoadingFile;
 	def!PeriodicStructuredPressureLoadingFile;
+
+	def!create_aperiodic_bpm_file;
+	def!(wopwopd.loading.append_bpm_data);
 }
 
 void python_loading_class_wraps() {
-	wrap_class!LoadingFile;
+	wrap_class!(
+		wopwopd.loading.BPMFileHeader,
+		Init!(int, bool, bool, bool, bool, bool, bool, bool, bool)
+	);
+
+	wrap_class!(
+		AperiodicBPMFile,
+		PyName!"AperiodicBPMFile",
+		Init!(wopwopd.loading.BPMFileHeader, int)
+	);
+
+	wrap_class!(wopwopd.loading.BPMFileHandle);
 
 	wrap_class!(LoadingFile);
 	wrap_class!(ZoneData);

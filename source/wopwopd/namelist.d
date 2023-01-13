@@ -29,6 +29,7 @@ enum BlockType {
 	ObserverIn,
 	ContainerIn,
 	CB,
+	BPMIn,
 	Unknown
 }
 
@@ -126,6 +127,7 @@ struct EnvironmentIn {
 	OptionalBool loadingSigmaFlag;
 	OptionalBool machSigmaFlag;
 	OptionalBool normalSigmaFlag;
+	OptionalBool broadbandFlag;
 
 	bool opEquals(const EnvironmentIn other) const {
 		bool result = true;
@@ -305,6 +307,7 @@ struct ContainerIn {
 	private OptionalSize nbBase;
 	ContainerIn[] children;
 	CB[] cobs;
+	OptionalBPMIn bpm_in;
 
 	bool opEquals(const ContainerIn other) const {
 		bool result = true;
@@ -344,6 +347,50 @@ struct ContainerIn {
 	}
 }
 
+struct BPMIn {
+	OptionalString BPMNoiseFile;
+	OptionalSize nSect;
+	OptionalUniformType uniformBlade;
+	OptionalTripType BLtrip;
+	OptionalBPMFlagType sectChordFlag;
+	OptionalFloatArray sectChord;
+	OptionalBPMFlagType sectLengthFlag;
+	OptionalFloatArray sectLength;
+	OptionalBPMFlagType TEThicknessFlag;
+	OptionalFloatArray TEThickness;
+	OptionalBPMFlagType TEflowAngleFlag;
+	OptionalFloatArray TEflowAngle;
+	OptionalBPMFlagType TipLCSFlag;
+	OptionalFloat TipLCS;
+	OptionalBPMFlagType SectAOAFlag;
+	OptionalFloatArray SectAOA;
+	OptionalBPMFlagType UFlag;
+	OptionalFloatArray U;
+	OptionalBool LBLVSnoise;
+	OptionalBool TBLTEnoise;
+	OptionalBool bluntNoise;
+	OptionalBool bladeTipNoise;
+}
+
+alias OptionalBPMIn = Nullable!BPMIn;
+
+enum TripType : int {
+	no_trip = 0,
+	soft_trip = 1,
+	hard_trip = 2
+}
+
+enum UniformType : int {
+	nonuniform = 0,
+	uniform = 1
+}
+
+enum BPMFlagType : string {
+	compute = "Compute",
+	user_value = "UserValue",
+	file_value = "FileValue"
+}
+
 enum AxisType : string {
 	time_independent = "TimeIndependent",
 	non_periodic = "NonPeriodic"
@@ -371,6 +418,9 @@ private T parse_enum_value(T)(string str) {
 	}
 }
 
+alias OptionalTripType = Nullable!TripType;
+alias OptionalUniformType = Nullable!UniformType;
+alias OptionalBPMFlagType = Nullable!BPMFlagType;
 alias OptionalAxisType = Nullable!AxisType;
 alias OptionalTranslationType = Nullable!TranslationType;
 alias OptionalAngleType = Nullable!AngleType;
@@ -434,7 +484,7 @@ void write_namelist_struct(F, S)(auto ref F file, auto ref S s) {
 	file.writeln("&", S.stringof);
 
 	static foreach(m_idx, member; FieldNameTuple!S) {{
-		static if((member == "cobs") || (member == "children") || (member == "ranges") || (member == "namelist")) {
+		static if((member == "cobs") || (member == "children") || (member == "ranges") || (member == "namelist") || (member == "bpm_in")) {
 			alias SaveType = field_types[m_idx];
 			SaveType value;
 			bool skip = true;
@@ -504,6 +554,11 @@ private void _write_containers(F)(auto ref F file, ContainerIn[] containers) {
 		foreach(ref cob; container.cobs) {
 			file.write_namelist_struct(cob);
 		}
+		if(!container.BPMNoiseFlag.isNull && container.BPMNoiseFlag.get()) {
+			enforce(!container.bpm_in.isNull, "BPMNoiseFlag is set but BPMIn namelist is not set");
+			file.write_namelist_struct(container.bpm_in.get);
+		}
+
 		file._write_containers(container.children);
 	}
 }
@@ -538,10 +593,10 @@ private Type parse_section(Type)(string[] section_string) {
 
 		outer: switch(var_name.toLower) {
 			static foreach(field; FieldNameTuple!(Type)) {
-				static if(field != "cobs" && field != "children" && field != "ranges") {
+				static if(field != "cobs" && field != "children" && field != "ranges" && field != "bpm_in") {
 					case field.toLower:
 						mixin("alias _R = Unqual!(ReturnType!(Type."~field~".get));");
-						static if(isArray!_R && !is(_R == AxisType) && !is(_R == AngleType) && !is(_R == TranslationType) && !is(_R == WindowFunction) && !is(_R == AverageSide)) {
+						static if(isArray!_R && !is(_R == AxisType) && !is(_R == AngleType) && !is(_R == TranslationType) && !is(_R == WindowFunction) && !is(_R == AverageSide) && !is(_R == BPMFlagType)) {
 							alias R = Unqual!(ForeachType!_R)[];
 						} else {
 							alias R = _R;
@@ -560,7 +615,7 @@ private Type parse_section(Type)(string[] section_string) {
 								.staticArray!(float[3]);
 
 							mixin("section."~field~" = FVec3(reformated_vec);");
-						} else static if(is(R == AxisType) || is(R == TranslationType) || is(R == AngleType) || is(R == WindowFunction) || is(R == AverageSide)) {
+						} else static if(is(R == AxisType) || is(R == TranslationType) || is(R == AngleType) || is(R == WindowFunction) || is(R == AverageSide) || is(_R == BPMFlagType)) {
 							mixin("section."~field~" = var_value.parse_enum_value!R;");
 						} else static if(isArray!R && !is(R: string) && !is(R: char[])) {
 							mixin("section."~field~" = (\"[\"~var_value~\"]\").to!R;");
@@ -638,7 +693,7 @@ private ContainerIn parse_containerin_namelist(R)(auto ref R range) {
 	}
 
 	if(!t.BPMNoiseFlag.isNull) {
-		// Just eject these sections into the sun if they exist.
+		t.bpm_in = parse_section!BPMIn(range.front);
 		range.popFront;
 	}
 

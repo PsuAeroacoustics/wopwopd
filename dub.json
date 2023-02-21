@@ -7,6 +7,7 @@
 	"dependencies": {
 		"numd": {"path": "./dependencies/numd"}
 	},
+	"lflags-posix": ["-L/usr/local/lib", "-L$HOME/mambaforge/lib"],
 	"configurations": [
 		{
 			"name": "library",

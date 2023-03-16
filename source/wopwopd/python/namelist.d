@@ -568,8 +568,19 @@ Namelist parse_namelist(string filename) {
 	return new Namelist(namelist);
 }
 
+void write_caselist(CaseList case_list, string directory) {
+	static import wopwopd.namelist;
+	wopwopd.namelist.write_caselist(case_list.internal, directory);
+}
+
+void write_caselist_custom_name(ref CaseList case_list, string directory, string caselist_filename) {
+	static import wopwopd.namelist;
+	wopwopd.namelist.write_caselist_custom_name(case_list.internal, directory, caselist_filename);
+}
+
 void python_namelist_function_wraps() {
-	def!(wopwopd.namelist.write_caselist);
+	def!(write_caselist);
+	def!(write_caselist_custom_name);
     def!(write_namelist);
 	def!(parse_namelist);
 

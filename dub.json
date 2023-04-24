@@ -7,7 +7,7 @@
 	"dependencies": {
 		"numd": {"path": "./dependencies/numd"}
 	},
-	"lflags-posix": ["-L/usr/local/lib", "-L$HOME/mambaforge/lib"],
+	"lflags-posix": ["-L/usr/local/lib", "-L$HOME/mambaforge/lib", "-L/swst/apps/anaconda3/2021.05_gcc-8.5.0/lib"],
 	"configurations": [
 		{
 			"name": "library",

@@ -124,9 +124,21 @@ struct EnvironmentIn {
 	OptionalBool loadingNoiseFlag;
 	OptionalBool totalNoiseFlag;
 	OptionalBool sigmaFlag;
-	OptionalBool loadingSigmaFlag;
-	OptionalBool machSigmaFlag;
+	OptionalBool loadingNoiseSigmaFlag;
+	OptionalBool thicknessNoiseSigmaFlag;
+	OptionalBool totalNoiseSigmaFlag;
 	OptionalBool normalSigmaFlag;
+	OptionalBool machSigmaFlag;
+	OptionalBool observerSigmaFlag;
+	OptionalBool velocitySigmaFlag;
+	OptionalBool accelerationSigmaFlag;
+	OptionalBool densitySigmaFlag;
+	OptionalBool momentumSigmaFlag;
+	OptionalBool pressureSigmaFlag;
+	OptionalBool loadingSigmaFlag;
+	OptionalBool areaSigmaFlag;
+	OptionalBool MdotrSigmaFlag;
+	OptionalBool iblankSigmaFlag;
 	OptionalBool broadbandFlag;
 
 	bool opEquals(const EnvironmentIn other) const {

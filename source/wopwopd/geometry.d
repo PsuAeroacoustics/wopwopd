@@ -504,9 +504,9 @@ auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] 
 			static import std.math;
 			immutable xp = (p[0] - 0.25)*chord[r_idx];
 			immutable zp = p[1]*chord[r_idx];
-			geom.y_nodes[node_idx] = xp*std.math.cos(twist[r_idx] + PI) - zp*std.math.sin(twist[r_idx] + PI);
+			geom.y_nodes[node_idx] = xp*std.math.cos(twist[r_idx]) - zp*std.math.sin(twist[r_idx]);
 			geom.x_nodes[node_idx] = rs*radius;
-			geom.z_nodes[node_idx] = xp*std.math.sin(twist[r_idx] + PI) + zp*std.math.cos(twist[r_idx] + PI);
+			geom.z_nodes[node_idx] = xp*std.math.sin(twist[r_idx]) + zp*std.math.cos(twist[r_idx]);
 
 			node_idx++;
 		}

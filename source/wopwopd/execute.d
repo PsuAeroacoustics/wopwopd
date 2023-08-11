@@ -41,3 +41,28 @@ auto wopwop3(ref CaseList caselist, string work_dir = "./", size_t cores = 1) {
 	}
 	return results;
 }
+
+void exec_wopwop3(ref CaseList caselist, string work_dir = "./", size_t cores = 1, string caselist_prefix = "cases") {
+
+	foreach(ref _case; caselist.cases) {
+		write_namelist(_case.namelist, work_dir~'/'~_case.globalFolderName.get()~_case.caseNameFile.get());
+	}
+
+	//write_caselist(caselist, work_dir);
+
+	foreach(case_idx, ref cases; chunks(caselist.cases, 4).enumerate) {
+		auto sub_caselist = CaseList();
+		sub_caselist.cases = cases;
+		string case_list_name = caselist_prefix~case_idx.to!string~".nam";
+		write_caselist_custom_name(sub_caselist, work_dir, case_list_name);
+
+		Pid pid;
+		if(cores > 1) {
+			pid = spawnProcess(["mpirun", "-n", cores.to!string, "wopwop3", case_list_name], stdin, stdout, stderr, null, Config.none, work_dir);
+		} else {
+			pid = spawnProcess(["wopwop3", case_list_name], stdin, stdout, stderr, null, Config.none, work_dir);
+		}
+
+		wait(pid);
+	}
+}

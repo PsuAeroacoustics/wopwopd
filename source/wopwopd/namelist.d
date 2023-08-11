@@ -533,12 +533,7 @@ void write_namelist_struct(F, S)(auto ref F file, auto ref S s) {
 }
 
 void write_caselist(ref CaseList case_list, string directory) {
-	import std.path : buildPath;
-	auto filename = directory.buildPath("cases.nam");
-	auto file = File(filename, "w");
-	foreach(ref c; case_list.cases) {
-		file.write_namelist_struct(c);
-	}
+	write_caselist_custom_name(case_list, directory, "cases.nam");
 }
 
 void write_caselist_custom_name(ref CaseList case_list, string directory, string caselist_filename) {

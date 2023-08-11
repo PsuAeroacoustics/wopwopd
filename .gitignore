@@ -1,3 +1,4 @@
 libwopwopd.a
+libwopwopd.so
 .dub
 dub.selections.json

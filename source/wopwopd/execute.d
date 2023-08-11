@@ -53,7 +53,7 @@ void exec_wopwop3(ref CaseList caselist, string work_dir = "./", size_t cores = 
 	foreach(case_idx, ref cases; chunks(caselist.cases, 4).enumerate) {
 		auto sub_caselist = CaseList();
 		sub_caselist.cases = cases;
-		string case_list_name = caselist_prefix~case_idx.to!string~".nam";
+		string case_list_name = caselist_prefix~"_"~case_idx.to!string~".nam";
 		write_caselist_custom_name(sub_caselist, work_dir, case_list_name);
 
 		Pid pid;

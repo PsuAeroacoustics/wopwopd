@@ -385,6 +385,14 @@ void close_loading_file(LoadingFileHandle file_handle) {
 	}
 }
 
+void restart_loading_file(LoadingFileHandle file_handle) {
+	if(file_handle.pressure_file_handle !is null) {
+		wopwopd.restart_loading_file(file_handle.pressure_file_handle);
+	} else if(file_handle.vector_file_handle !is null) {
+		wopwopd.restart_loading_file(file_handle.vector_file_handle);
+	}
+}
+
 auto ReferenceFrame_stationary_ground_fixed() {
 	return wopwopd.ReferenceFrame.stationary_ground_fixed;
 }
@@ -410,6 +418,7 @@ void python_loading_function_wraps() {
 
 	def!create_loading_file;
 	def!append_loading_data;
+	def!restart_loading_file;
 	def!close_loading_file;
 
 	def!ConstUnstructuredVectorLoadingFile;

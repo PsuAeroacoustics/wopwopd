@@ -312,6 +312,7 @@ struct LoadingFileT(LoadingType loading_type) {
 	} else {
 		File serial_file;
 	}
+	size_t end_of_header;
 }
 
 struct BPMFileHandle {
@@ -446,6 +447,8 @@ struct BPMFileHandle {
 			file.serial_file.serial_write_struct(zone_header);
 		}
 	}
+
+	file.end_of_header = file.serial_file.tell;
 
 	return file;
 }
@@ -634,6 +637,9 @@ static if(have_mpi) @trusted LoadingFileT!(LoadingFileType.loading_type) create_
 		file.z_loading_displacement = file.y_loading_displacement + single_list_size;
 	}
 
+	ret = MPI_File_get_position(file.file_handle, &file.end_of_header);
+	enforce(ret == MPI_SUCCESS, "Failed to get file position");
+
 	return file;
 }
 
@@ -715,6 +721,14 @@ void append_loading_data(LoadingFile, LoadingData)(ref LoadingFile file, auto re
 		append_loading_data_mpi(file, loading_data);
 	} else {
 		append_loading_data_serial(file, loading_data);
+	}
+}
+
+void restart_loading_file(LoadingFile)(ref LoadingFile file) {
+	static if(have_mpi) {
+		static assert(false, "No MPI implementation for restart_loading_file");
+	} else {
+		file.serial_file.seek(file.end_of_header);
 	}
 }
 

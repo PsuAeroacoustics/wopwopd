@@ -30,7 +30,9 @@ void python_output_class_wraps() {
         Member!("oaspl_db"),
         Member!("oaspl_dba"),
         Member!("oaspl_db_grid"),
-        Member!("oaspl_dba_grid")
+        Member!("oaspl_dba_grid"),
+        Member!("frequency_ranges_db"),
+        Member!("frequency_ranges_dba")
     );
 
     wrap_struct!(

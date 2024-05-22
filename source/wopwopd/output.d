@@ -35,6 +35,8 @@ struct WopwopResult {
     Observer[] observer_spectrum;
 	Observer[] oaspl_db;
 	Observer[] oaspl_dba;
+	Observer[][] frequency_ranges_db;
+	Observer[][] frequency_ranges_dba;
 	Grid oaspl_db_grid;
 	Grid oaspl_dba_grid;
 }
@@ -160,6 +162,29 @@ auto parse_wopwop_results(string wopwop_directory, ref Namelist namelist) {
 
 		result.oaspl_dba = read_plot3d_binary(oaspldba_filename);
 		result.oaspl_dba_grid = read_plot3d_grid(oaspldbaxyz_filename);
+	}
+
+	if(namelist.observers[0].ranges.length > 0) {
+		foreach(ref range; namelist.observers[0].ranges) {
+			import std.file : copy;
+
+			auto oaspldbax_filename = wopwop_directory.buildPath("segmentProcess", "freqRanges.x");
+			auto oaspldbaxyz_filename = wopwop_directory.buildPath("segmentProcess", "freqRanges.xyz");
+
+			copy(oaspldbax_filename, oaspldbaxyz_filename);
+
+			if(!namelist.environment_in.OASPLdBAFlag.isNull && namelist.environment_in.OASPLdBAFlag.get) {
+				auto oaspldba_filename = wopwop_directory.buildPath("segmentProcess", range.Title.get()~"_dBA.fn");
+				result.frequency_ranges_dba ~= read_plot3d_binary(oaspldba_filename);
+				result.oaspl_dba_grid = read_plot3d_grid(oaspldbaxyz_filename);
+			}
+
+			if(!namelist.environment_in.OASPLdBFlag.isNull && namelist.environment_in.OASPLdBFlag.get) {
+				auto oaspldb_filename = wopwop_directory.buildPath("segmentProcess", range.Title.get()~"_dB.fn");
+				result.frequency_ranges_db ~= read_plot3d_binary(oaspldb_filename);
+				result.oaspl_db_grid = read_plot3d_grid(oaspldbaxyz_filename);
+			}
+		}
 	}
 
     return result;

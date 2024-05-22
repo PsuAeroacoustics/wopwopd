@@ -30,6 +30,7 @@ enum BlockType {
 	ContainerIn,
 	CB,
 	BPMIn,
+	RangeIn,
 	Unknown
 }
 
@@ -45,6 +46,8 @@ private BlockType parse_block_type(S)(S str) {
 			return BlockType.ContainerIn;
 		case "&cb":
 			return BlockType.CB;
+		case "&rangein":
+			return BlockType.RangeIn;
 		default:
 			return BlockType.Unknown;
 	}
@@ -128,6 +131,18 @@ struct EnvironmentIn {
 	OptionalBool machSigmaFlag;
 	OptionalBool normalSigmaFlag;
 	OptionalBool broadbandFlag;
+	OptionalBool loadingNoiseSigmaFlag;
+	OptionalBool thicknessNoiseSigmaFlag;
+	OptionalBool totalNoiseSigmaFlag;
+	OptionalBool observerSigmaFlag;
+	OptionalBool velocitySigmaFlag;
+	OptionalBool accelerationSigmaFlag;
+	OptionalBool densitySigmaFlag;
+	OptionalBool momentumSigmaFlag;
+	OptionalBool pressureSigmaFlag;
+	OptionalBool areaSigmaFlag;
+	OptionalBool MdotrSigmaFlag;
+	OptionalBool iblankSigmaFlag;
 
 	bool opEquals(const EnvironmentIn other) const {
 		bool result = true;
@@ -661,6 +676,15 @@ private ObserverIn parse_observerin_namelist(R)(auto ref R range) {
 		enforce(parse_block_type(cb_block.front) == BlockType.CB, "Expected CB namelist");
 		cb_block.popFront;
 		t.cobs ~= parse_section!CB(cb_block);
+	}
+
+	while(!range.empty && !range.front.empty && parse_block_type(range.front.front) == BlockType.RangeIn) {
+		auto range_block = range.front;
+		range.popFront;
+
+		enforce(parse_block_type(range_block.front) == BlockType.RangeIn, "Expected RangeIn namelist");
+		range_block.popFront;
+		t.ranges ~= parse_section!RangeIn(range_block);
 	}
 
 	// Skip ObserverIn sub namelists that we do not support

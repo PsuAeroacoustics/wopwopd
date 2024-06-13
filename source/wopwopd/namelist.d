@@ -143,18 +143,6 @@ struct EnvironmentIn {
 	OptionalBool MdotrSigmaFlag;
 	OptionalBool iblankSigmaFlag;
 	OptionalBool broadbandFlag;
-	OptionalBool loadingNoiseSigmaFlag;
-	OptionalBool thicknessNoiseSigmaFlag;
-	OptionalBool totalNoiseSigmaFlag;
-	OptionalBool observerSigmaFlag;
-	OptionalBool velocitySigmaFlag;
-	OptionalBool accelerationSigmaFlag;
-	OptionalBool densitySigmaFlag;
-	OptionalBool momentumSigmaFlag;
-	OptionalBool pressureSigmaFlag;
-	OptionalBool areaSigmaFlag;
-	OptionalBool MdotrSigmaFlag;
-	OptionalBool iblankSigmaFlag;
 
 	bool opEquals(const EnvironmentIn other) const {
 		bool result = true;

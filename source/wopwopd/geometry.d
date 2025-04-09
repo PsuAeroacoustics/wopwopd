@@ -490,7 +490,7 @@ void close_geometry_file(ref GeometryFileHandle file) {
 	}
 }
 
-auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] radial_stations, double[] twist, double radius, double[] chord) {
+auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] radial_stations, double[] twist, double radius, double[] chord, double[] thickness, double[] y) {
 	// radial_stations are in the y direction and the airfoil points are in the x-z plane.
 
 	import std.math : PI;
@@ -503,8 +503,8 @@ auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] 
 		foreach(r_idx, rs; radial_stations) {
 			static import std.math;
 			immutable xp = (p[0] - 0.25)*chord[r_idx];
-			immutable zp = p[1]*chord[r_idx];
-			geom.y_nodes[node_idx] = xp*std.math.cos(twist[r_idx]) - zp*std.math.sin(twist[r_idx]);
+			immutable zp = p[1]*chord[r_idx]*thickness[r_idx]/0.12;
+			geom.y_nodes[node_idx] = xp*std.math.cos(twist[r_idx]) - zp*std.math.sin(twist[r_idx]) + y[r_idx];
 			geom.x_nodes[node_idx] = rs*radius;
 			geom.z_nodes[node_idx] = xp*std.math.sin(twist[r_idx]) + zp*std.math.cos(twist[r_idx]);
 

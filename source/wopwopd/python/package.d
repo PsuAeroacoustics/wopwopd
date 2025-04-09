@@ -36,7 +36,7 @@ version(Python_3_0_Or_Later) {
     extern(C) export PyObject* PyInit_libwopwopd() {
         return pyd.exception.exception_catcher(delegate PyObject*() {
                 pyd.thread.ensureAttached();
-                pyd.def.pyd_module_name = "wopwopd";
+                pyd.def.pyd_module_name = "libwopwopd";
                 PydMain();
                 return pyd.def.pyd_modules[""];
                 });
@@ -45,7 +45,7 @@ version(Python_3_0_Or_Later) {
     extern(C) export void initlibwopwopd() {
         pyd.exception.exception_catcher(delegate void() {
                 pyd.thread.ensureAttached();
-                pyd.def.pyd_module_name = "wopwopd";
+                pyd.def.pyd_module_name = "libwopwopd";
                 PydMain();
                 });
     }

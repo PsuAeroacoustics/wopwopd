@@ -48,6 +48,8 @@ private BlockType parse_block_type(S)(S str) {
 			return BlockType.CB;
 		case "&rangein":
 			return BlockType.RangeIn;
+		case "&bpmin":
+			return BlockType.BPMIn;
 		default:
 			return BlockType.Unknown;
 	}
@@ -372,7 +374,7 @@ struct BPMIn {
 	OptionalBPMFlagType sectLengthFlag;
 	OptionalFloatArray sectLength;
 	OptionalBPMFlagType TEThicknessFlag;
-	OptionalFloatArray TEThickness;
+	OptionalFloat TEThickness;
 	OptionalBPMFlagType TEflowAngleFlag;
 	OptionalFloatArray TEflowAngle;
 	OptionalBPMFlagType TipLCSFlag;
@@ -385,6 +387,7 @@ struct BPMIn {
 	OptionalBool TBLTEnoise;
 	OptionalBool bluntNoise;
 	OptionalBool bladeTipNoise;
+	OptionalBool DirectivityFlag;
 }
 
 alias OptionalBPMIn = Nullable!BPMIn;
@@ -636,6 +639,8 @@ private Type parse_section(Type)(string[] section_string) {
 							mixin("section."~field~" = FVec3(reformated_vec);");
 						} else static if(is(R == AxisType) || is(R == TranslationType) || is(R == AngleType) || is(R == WindowFunction) || is(R == AverageSide) || is(_R == BPMFlagType)) {
 							mixin("section."~field~" = var_value.parse_enum_value!R;");
+						} else static if(is(R == TripType) || is(R == UniformType)) {
+							mixin("section."~field~" = var_value.to!int.to!R;");
 						} else static if(isArray!R && !is(R: string) && !is(R: char[])) {
 							mixin("section."~field~" = (\"[\"~var_value~\"]\").to!R;");
 						} else {
@@ -646,7 +651,7 @@ private Type parse_section(Type)(string[] section_string) {
 				}
 			}
 			default:
-				writeln("WARNING: Skipping unknown field ", var_name);
+				writeln("WARNING: Skipping unknown field ", var_name, " parsing ", Type.stringof);
 		}
 	}
 
@@ -720,9 +725,13 @@ private ContainerIn parse_containerin_namelist(R)(auto ref R range) {
 		range.popFront;
 	}
 
-	if(!t.BPMNoiseFlag.isNull) {
-		t.bpm_in = parse_section!BPMIn(range.front);
+	if(!t.BPMNoiseFlag.isNull && t.BPMNoiseFlag.get) {
+		auto bpm_block = range.front;
 		range.popFront;
+
+		enforce(parse_block_type(bpm_block.front) == BlockType.BPMIn, "Expected BPMIn namelist");
+		bpm_block.popFront;
+		t.bpm_in = parse_section!BPMIn(bpm_block);
 	}
 
 	if(!t.nbContainer.isNull) {

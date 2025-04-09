@@ -265,8 +265,8 @@ double[2][] naca0012() {
     return wopwopd.airfoils.naca0012;
 }
 
-auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] radial_stations, double[] twist, double radius, double[] chord) {
-    auto geo_data = wopwopd.generate_simple_constant_blade_geom(airfoil_xsection, radial_stations, twist, radius, chord);
+auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] radial_stations, double[] twist, double radius, double[] chord, double[] thickness, double[] y) {
+    auto geo_data = wopwopd.generate_simple_constant_blade_geom(airfoil_xsection, radial_stations, twist, radius, chord, thickness, y);
     return new GeometryData(geo_data);
 }
 

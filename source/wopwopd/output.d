@@ -312,6 +312,20 @@ auto parse_wopwop_results(string wopwop_directory, ref Namelist namelist) {
 			result.oaspl_db_grid = read_plot3d_grid(oaspldbxyz_filename);
 		}
 		
+
+		oaspldba_filename = wopwop_directory.buildPath("octaveFilterSP", namelist.environment_in.SPLFolderName.get, "OASPLdBA.fn");
+		// oaspldbax_filename = wopwop_directory.buildPath("octaveFilterSP", namelist.environment_in.SPLFolderName.get, "OASPL.x");
+		// oaspldbaxyz_filename = wopwop_directory.buildPath("octaveFilterSP", namelist.environment_in.SPLFolderName.get, "OASPL.xyz");
+
+		//copy(oaspldbax_filename, oaspldbaxyz_filename);
+
+		if(isASCII) {
+			result.oaspl_dba = read_plot3d_ascii(oaspldba_filename);
+			result.oaspl_dba_grid = read_plot3d_grid_ascii(oaspldbxyz_filename);
+		} else {
+			result.oaspl_dba = read_plot3d_binary(oaspldba_filename);
+			result.oaspl_dba_grid = read_plot3d_grid(oaspldbxyz_filename);
+		}
 		
 	} else if(namelist.observers[0].ranges.length > 0) {
 		writeln("Reading ranges");

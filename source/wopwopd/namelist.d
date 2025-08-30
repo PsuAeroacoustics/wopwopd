@@ -31,6 +31,7 @@ enum BlockType {
 	CB,
 	BPMIn,
 	RangeIn,
+	BWIIn,
 	Unknown
 }
 
@@ -50,6 +51,8 @@ private BlockType parse_block_type(S)(S str) {
 			return BlockType.RangeIn;
 		case "&bpmin":
 			return BlockType.BPMIn;
+		case "&bwiin":
+			return BlockType.BWIIn;
 		default:
 			return BlockType.Unknown;
 	}
@@ -145,6 +148,7 @@ struct EnvironmentIn {
 	OptionalBool MdotrSigmaFlag;
 	OptionalBool iblankSigmaFlag;
 	OptionalBool broadbandFlag;
+	OptionalBool BWINoiseFlag;
 
 	bool opEquals(const EnvironmentIn other) const {
 		bool result = true;
@@ -321,10 +325,12 @@ struct ContainerIn {
 	OptionalString patchLoadingFile;
 	OptionalBool PeggNoiseFlag;
 	OptionalBool BPMNoiseFlag;
+	OptionalBool BWINoiseFlag;
 	private OptionalSize nbBase;
 	ContainerIn[] children;
 	CB[] cobs;
 	OptionalBPMIn bpm_in;
+	OptionalBWIIn bwi_in;
 
 	bool opEquals(const ContainerIn other) const {
 		bool result = true;
@@ -390,7 +396,20 @@ struct BPMIn {
 	OptionalBool DirectivityFlag;
 }
 
+struct BWIIn {
+	OptionalString BWINoiseFile;
+	OptionalSize nSect;
+	OptionalUniformType uniformBlade;
+	OptionalBPMFlagType sectChordFlag;
+	OptionalFloatArray sectChord;
+	OptionalBPMFlagType sectLengthFlag;
+	OptionalFloatArray sectLength;
+	OptionalBPMFlagType UFlag;
+	OptionalFloatArray U;
+}
+
 alias OptionalBPMIn = Nullable!BPMIn;
+alias OptionalBWIIn = Nullable!BWIIn;
 
 enum TripType : int {
 	no_trip = 0,
@@ -502,7 +521,7 @@ void write_namelist_struct(F, S)(auto ref F file, auto ref S s) {
 	file.writeln("&", S.stringof);
 
 	static foreach(m_idx, member; FieldNameTuple!S) {{
-		static if((member == "cobs") || (member == "children") || (member == "ranges") || (member == "namelist") || (member == "bpm_in")) {
+		static if((member == "cobs") || (member == "children") || (member == "ranges") || (member == "namelist") || (member == "bpm_in") || (member == "bwi_in")) {
 			alias SaveType = field_types[m_idx];
 			SaveType value;
 			bool skip = true;
@@ -580,6 +599,10 @@ private void _write_containers(F)(auto ref F file, ContainerIn[] containers) {
 			enforce(!container.bpm_in.isNull, "BPMNoiseFlag is set but BPMIn namelist is not set");
 			file.write_namelist_struct(container.bpm_in.get);
 		}
+		if(!container.BWINoiseFlag.isNull && container.BWINoiseFlag.get()) {
+			enforce(!container.bwi_in.isNull, "BWINoiseFlag is set but BWIIn namelist is not set");
+			file.write_namelist_struct(container.bwi_in.get);
+		}
 
 		file._write_containers(container.children);
 	}
@@ -615,7 +638,7 @@ private Type parse_section(Type)(string[] section_string) {
 
 		outer: switch(var_name.toLower) {
 			static foreach(field; FieldNameTuple!(Type)) {
-				static if(field != "cobs" && field != "children" && field != "ranges" && field != "bpm_in") {
+				static if(field != "cobs" && field != "children" && field != "ranges" && field != "bpm_in" && field != "bwi_in") {
 					case field.toLower:
 						mixin("alias _R = Unqual!(ReturnType!(Type."~field~".get));");
 						static if(isArray!_R && !is(_R == AxisType) && !is(_R == AngleType) && !is(_R == TranslationType) && !is(_R == WindowFunction) && !is(_R == AverageSide) && !is(_R == BPMFlagType)) {
@@ -732,6 +755,15 @@ private ContainerIn parse_containerin_namelist(R)(auto ref R range) {
 		enforce(parse_block_type(bpm_block.front) == BlockType.BPMIn, "Expected BPMIn namelist");
 		bpm_block.popFront;
 		t.bpm_in = parse_section!BPMIn(bpm_block);
+	}
+
+	if(!t.BWINoiseFlag.isNull && t.BWINoiseFlag.get) {
+		auto bwi_block = range.front;
+		range.popFront;
+
+		enforce(parse_block_type(bwi_block.front) == BlockType.BWIIn, "Expected BWIIn namelist");
+		bwi_block.popFront;
+		t.bwi_in = parse_section!BWIIn(bwi_block);
 	}
 
 	if(!t.nbContainer.isNull) {

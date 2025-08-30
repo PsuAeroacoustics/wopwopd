@@ -103,13 +103,14 @@ static if(have_mpi) @trusted void serial_write_struct(S)(MPI_File file, auto ref
 	alias field_types = Fields!S;
 
 	static foreach(m_idx, member; staticMap!(to_string, getSymbolsByUDA!(S, wopwop))) {{
-		//import std.stdio : writeln;
+		import std.stdio : writeln;
 		//writeln("writing member: ", member);
 		mixin("auto v = s."~member~";");
 		static if(isArray!(field_types[m_idx])) {
 			file.rawWrite(v);
 		} else {
 			file.rawWrite([v]);
+			writeln("v:", [v]);
 		}
 		
 	}}

@@ -382,7 +382,10 @@ void close_loading_file(LoadingFileHandle file_handle) {
 		wopwopd.close_loading_file(file_handle.pressure_file_handle);
 	} else if(file_handle.vector_file_handle !is null) {
 		wopwopd.close_loading_file(file_handle.vector_file_handle);
-	}
+	} 
+}
+void close_bwi_file(wopwopd.loading.BWIFileHandle file_handle) {
+	wopwopd.close_loading_file(file_handle);
 }
 
 void restart_loading_file(LoadingFileHandle file_handle) {
@@ -409,6 +412,12 @@ alias AperiodicBPMFile = wopwopd.loading.BPMFile!(wopwopd.TimeType.aperiodic);
 
 wopwopd.loading.BPMFileHandle create_aperiodic_bpm_file(ref AperiodicBPMFile bpm_file, string filename, float[] chord, float[] section_length, float[] te_thickness, float[] te_flow_angle) {
 	return wopwopd.loading.create_bpm_file(bpm_file, filename, chord, section_length, te_thickness, te_flow_angle);
+}
+
+alias AperiodicBWIFile = wopwopd.loading.BWIFile!(wopwopd.TimeType.aperiodic);
+
+wopwopd.loading.BWIFileHandle create_aperiodic_bwi_file(ref AperiodicBWIFile bwi_file, string filename, float[] chord, float[] section_length) {
+	return wopwopd.loading.create_bwi_file(bwi_file, filename, chord, section_length);
 }
 
 void python_loading_function_wraps() {
@@ -439,6 +448,10 @@ void python_loading_function_wraps() {
 
 	def!create_aperiodic_bpm_file;
 	def!(wopwopd.loading.append_bpm_data);
+
+	def!create_aperiodic_bwi_file;
+	def!(wopwopd.loading.append_bwi_data);
+	def!close_bwi_file;
 }
 
 void python_loading_class_wraps() {
@@ -454,6 +467,19 @@ void python_loading_class_wraps() {
 	);
 
 	wrap_class!(wopwopd.loading.BPMFileHandle);
+
+	wrap_class!(
+		wopwopd.loading.BWIFileHeader,
+		Init!(bool, bool, bool, bool)
+	);
+
+	wrap_class!(
+		AperiodicBWIFile,
+		PyName!"AperiodicBWIFile",
+		Init!(wopwopd.loading.BWIFileHeader, int)
+	);
+
+	wrap_class!(wopwopd.loading.BWIFileHandle);
 
 	wrap_class!(LoadingFile);
 	wrap_class!(ZoneData);

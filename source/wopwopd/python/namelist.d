@@ -103,6 +103,18 @@ template NamelistWrap(S) {
 					props ~= "@property void "~member~"(wopwopd.python.BPMIn p) {\n";
 					props ~= "\t"~varname~"."~member~" = p.internal;\n";
 					props ~= "}\n";
+				} else static if(is(M == wopwopd.namelist.OptionalBWIIn)) {
+					props ~= "@property wopwopd.python.BWIIn "~member~"() {\n";
+					props ~= "\tif(!"~varname~"."~member~".isNull) {\n";
+					props ~= "\t\treturn new BWIIn("~varname~"."~member~".get);\n";
+					props ~= "\t} else {\n";
+					props ~= "\t\tthrow new Exception(\""~member~" has not been set and is null\");\n";
+					props~= "\t}\n";
+					props ~= "}\n\n";
+
+					props ~= "@property void "~member~"(wopwopd.python.BWIIn p) {\n";
+					props ~= "\t"~varname~"."~member~" = p.internal;\n";
+					props ~= "}\n";
 				} else static if(is(M == wopwopd.namelist.OptionalWindowFunction)) {
 					props ~= "@property WindowFunction "~member~"() {\n";
 					props ~= "\tif(!"~varname~"."~member~".isNull) {\n";
@@ -394,6 +406,18 @@ class BPMIn {
 	}
 }
 
+class BWIIn {
+	mixin NamelistWrap!(wopwopd.namelist.BWIIn);
+
+	this() {
+
+	}
+
+	this(ref wopwopd.namelist.BWIIn bwi_in) {
+		internal = bwi_in;
+	}
+}
+
 struct TripType {
 	private wopwopd.namelist.TripType tt;
 
@@ -626,6 +650,7 @@ void python_namelist_class_wraps() {
 	mixin(wrap_namelist_class!Casename);
 	mixin(wrap_namelist_class!CaseList);
 	mixin(wrap_namelist_class!BPMIn);
+	mixin(wrap_namelist_class!BWIIn);
 
 	wrap_struct!(
 		TripType,

@@ -511,7 +511,7 @@ struct BWIFileHandle {
 		if(bwi_file.file_header.sections_are_uniform){
 				float value = chord[0];
 				file.serial_file.rawWrite([value]);
-				writeln("chord:", [chord[0]]);
+				//writeln("chord:", [chord[0]]);
 		} else{
 			foreach(e_idx; 0..elements) {
 				data[0] = chord[e_idx];
@@ -523,7 +523,7 @@ struct BWIFileHandle {
 		if(bwi_file.file_header.includes_section_length) {
 			float[1] data = [section_length[e_idx]];
 			file.serial_file.rawWrite(data);
-			writeln("secLen:", data);
+			//writeln("secLen:", data);
 		}
 	}
 
@@ -572,7 +572,7 @@ struct BWIFileHandle {
 
 			data[0] = L0[idx];
 			file_handle.serial_file.rawWrite(data);
-			writeln("L0:",data);
+			//writeln("L0:",data);
 
 			data[0] = b_e[idx];
 			file_handle.serial_file.rawWrite(data);

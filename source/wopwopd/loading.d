@@ -73,6 +73,53 @@ struct BPMFile(TimeType _time_type) {
 	}
 }
 
+struct BWIFileHeader {
+	@wopwop int magic_number = wopwop_magic_number;
+	@wopwop TimeType time_type;
+	@wopwop int sections_are_uniform;
+	@wopwop int includes_section_chord;
+	@wopwop int includes_section_length;
+	@wopwop int includes_section_freestream;
+	@wopwop int reserved_1 = 0;
+	@wopwop int reserved_2 = 0;
+	
+	this(bool _sections_are_uniform, bool _includes_section_chord, bool _includes_section_length, bool _includes_section_freestream) {
+		sections_are_uniform = _sections_are_uniform;
+		includes_section_chord = _includes_section_chord;
+		includes_section_length = _includes_section_length;
+		includes_section_freestream = _includes_section_freestream;
+	}
+}
+
+struct AperiodicBWIInfo {
+	@wopwop int timesteps;
+
+	this(int _timesteps) {
+		timesteps = _timesteps;
+	}
+}
+
+struct BWIFile(TimeType _time_type) {
+	alias time_type = _time_type;
+	BWIFileHeader file_header;
+
+	static if(time_type == TimeType.periodic) {
+		static assert(false, "Periodic BWI files not currently supported");
+	} else static if(time_type == TimeType.aperiodic) {
+		alias InfoType = AperiodicBWIInfo;
+	} else static if(time_type == TimeType.constant) {
+		static assert(false, "Constant BWI files not currently supported");
+	}
+
+	InfoType time_info;
+
+	this(BWIFileHeader _file_header, int _time_steps) {
+		file_header = _file_header;
+		file_header.time_type = time_type;
+		time_info = InfoType(_time_steps);
+	}
+}
+
 struct LoadingFileHeaderT(Structuring _structuring, TimeType _time_type, LoadingType _loading_type) {
 	@wopwop immutable int magic_number = wopwop_magic_number;
 	@wopwop immutable int file_version_1 = 1;
@@ -328,7 +375,7 @@ struct BPMFileHandle {
 }
 
 @trusted BPMFileHandle create_bpm_file(TimeType time_type)(BPMFile!time_type bpm_file, string filename, float[] chord, float[] section_length, float[] te_thickness, float[] te_flow_angle) {
-
+	import std.stdio : writeln;
 	auto serial_file = File(filename, "wb");
 
 	auto file = BPMFileHandle(serial_file, bpm_file.file_header, bpm_file.time_type);
@@ -419,6 +466,120 @@ struct BPMFileHandle {
 
 	if(file_handle.file_header.includes_section_freestream) {
 		file_handle.serial_file.rawWrite(u);
+	}
+}
+
+struct BWIFileHandle {
+	File serial_file;
+	BWIFileHeader file_header;
+	TimeType time_type;
+
+	this(File _serial_file, BWIFileHeader _file_header, TimeType _time_type) {
+		serial_file = _serial_file;
+		file_header = _file_header;
+		time_type = _time_type;
+	}
+}
+
+@trusted BWIFileHandle create_bwi_file(TimeType time_type)(BWIFile!time_type bwi_file, string filename, float[] chord, float[] section_length) {
+	import std.stdio : writeln;
+	auto serial_file = File(filename, "wb");
+
+	auto file = BWIFileHandle(serial_file, bwi_file.file_header, bwi_file.time_type);
+
+	file.serial_file.serial_write_struct(bwi_file.file_header);	
+
+	size_t elements = 0;
+	if(bwi_file.file_header.includes_section_chord) {
+		enforce(chord.length > 0, "File is supposed to include chord length, but none was given");
+		elements = chord.length;		
+	}
+
+	if(bwi_file.file_header.includes_section_length) {
+		enforce(section_length.length > 0, "File is supposed to include section length, but none was given");
+		
+		if(elements > 0) {
+			enforce(elements == section_length.length, "Section length array does not match expected length of "~elements.to!string);
+		} else {
+			elements = section_length.length;
+		}
+	}
+
+	
+	if(bwi_file.file_header.includes_section_chord) {
+		float[1] data;
+		if(bwi_file.file_header.sections_are_uniform){
+				float value = chord[0];
+				file.serial_file.rawWrite([value]);
+				//writeln("chord:", [chord[0]]);
+		} else{
+			foreach(e_idx; 0..elements) {
+				data[0] = chord[e_idx];
+				file.serial_file.rawWrite(data);
+			}			
+		}
+	}
+	foreach(e_idx; 0..elements) {
+		if(bwi_file.file_header.includes_section_length) {
+			float[1] data = [section_length[e_idx]];
+			file.serial_file.rawWrite(data);
+			//writeln("secLen:", data);
+		}
+	}
+
+	file.serial_file.serial_write_struct(bwi_file.time_info);
+
+	return file;
+}
+
+@trusted void append_bwi_data(ref BWIFileHandle file_handle, float t, int nInteractions, int[] ID, int[] psi, int[] sec_idx, int[] wake_angle, float[] missDist, float[] len, float[] L0, float[] b_e, float[] Uref) {
+
+	float[1] data;
+	if(file_handle.time_type != TimeType.constant) {
+		data[0] = t;
+		file_handle.serial_file.rawWrite(data);
+	}
+
+	int[1] dataInt;
+	dataInt[0] = nInteractions;
+	file_handle.serial_file.rawWrite([nInteractions]);
+
+	if(nInteractions > 0) {
+		//file_handle.serial_file.rawWrite(ID);
+		//file_handle.serial_file.rawWrite(psi);
+		
+		foreach (idx; 0..nInteractions) {
+			dataInt[0] = ID[idx];
+			file_handle.serial_file.rawWrite(dataInt);
+			//writeln("ID:", dataInt);
+
+			dataInt[0] = psi[idx];
+			file_handle.serial_file.rawWrite(dataInt);
+			//writeln("ID:", dataInt);
+
+			dataInt[0] = sec_idx[idx];
+			file_handle.serial_file.rawWrite(dataInt);
+			//writeln("ID:", dataInt);
+
+			dataInt[0] = wake_angle[idx];
+			file_handle.serial_file.rawWrite(dataInt);
+
+			data[0] = missDist[idx];
+			file_handle.serial_file.rawWrite(data);
+
+			data[0] = len[idx];
+			file_handle.serial_file.rawWrite(data);
+
+			data[0] = L0[idx];
+			file_handle.serial_file.rawWrite(data);
+			//writeln("L0:",data);
+
+			data[0] = b_e[idx];
+			file_handle.serial_file.rawWrite(data);
+
+			data[0] = Uref[idx];
+			file_handle.serial_file.rawWrite(data);
+		} 
 	}
 }
 
@@ -741,4 +902,8 @@ void close_loading_file(LoadingFileT)(ref LoadingFileT file) {
 	} else {
 		file.serial_file.close;
 	}
+}
+
+void close_bwi_file(BWIFileT)(ref BWIFileT file) {
+	file.serial_file.close;	
 }

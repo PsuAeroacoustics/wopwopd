@@ -110,7 +110,6 @@ static if(have_mpi) @trusted void serial_write_struct(S)(MPI_File file, auto ref
 			file.rawWrite(v);
 		} else {
 			file.rawWrite([v]);
-			writeln("v:", [v]);
 		}
 		
 	}}

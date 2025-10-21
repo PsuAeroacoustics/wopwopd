@@ -507,13 +507,14 @@ auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] 
 			geom.y_nodes[node_idx] = xp*std.math.cos(twist[r_idx]) - zp*std.math.sin(twist[r_idx]) + y[r_idx];
 			geom.x_nodes[node_idx] = rs*radius;
 			geom.z_nodes[node_idx] = xp*std.math.sin(twist[r_idx]) + zp*std.math.cos(twist[r_idx]);
-
 			node_idx++;
 		}
 	}
 
 	node_idx = 0;
 	foreach(p_idx, p; airfoil_xsection.retro.array) {
+		immutable p_p1 = airfoil_xsection.retro.array[p_idx+1];
+		immutable p_m1 = airfoil_xsection.retro.array[p_idx-1];
 		foreach(r_idx, rs; radial_stations) {
 			immutable n1 = (p_idx - 1)*radial_stations.length + r_idx;
 			immutable n2 = (p_idx + 1)*radial_stations.length + r_idx;
@@ -566,32 +567,76 @@ auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] 
 				} else {
 					// only use n1, n2, n4, and node_idx
 
-					immutable n1n = FVec3(
-						geom.x_nodes[n1] - geom.x_nodes[node_idx],
-						geom.y_nodes[n1] - geom.y_nodes[node_idx],
-						geom.z_nodes[n1] - geom.z_nodes[node_idx]
-					);
+					if ((p[0] == p_p1[0]) && (p[1] == p_p1[1])) {
+						immutable n1n = FVec3(
+							geom.x_nodes[n1] - geom.x_nodes[node_idx],
+							geom.y_nodes[n1] - geom.y_nodes[node_idx],
+							geom.z_nodes[n1] - geom.z_nodes[node_idx]
+						);
 
-					immutable n4n = FVec3(
-						geom.x_nodes[n4] - geom.x_nodes[node_idx],
-						geom.y_nodes[n4] - geom.y_nodes[node_idx],
-						geom.z_nodes[n4] - geom.z_nodes[node_idx]
-					);
+						immutable n4n = FVec3(
+							geom.x_nodes[n4] - geom.x_nodes[node_idx],
+							geom.y_nodes[n4] - geom.y_nodes[node_idx],
+							geom.z_nodes[n4] - geom.z_nodes[node_idx]
+						);
 
-					immutable n2n = FVec3(
-						geom.x_nodes[n2] - geom.x_nodes[node_idx],
-						geom.y_nodes[n2] - geom.y_nodes[node_idx],
-						geom.z_nodes[n2] - geom.z_nodes[node_idx]
-					);
+						immutable normal1 = n4n.cross(n1n).normalize;
 
-					immutable normal1 = n4n.cross(n1n).normalize;
-					immutable normal2 = n2n.cross(n4n).normalize;
+						// Average the 2 local face normals for the vert normal
+						immutable ave_norm = (normal1).normalize;
+						geom.x_normals[node_idx] = ave_norm[0];
+						geom.y_normals[node_idx] = ave_norm[1];
+						geom.z_normals[node_idx] = ave_norm[2];
 
-					// Average the 2 local face normals for the vert normal
-					immutable ave_norm = (0.5*(normal1 + normal2)).normalize;
-					geom.x_normals[node_idx] = ave_norm[0];
-					geom.y_normals[node_idx] = ave_norm[1];
-					geom.z_normals[node_idx] = ave_norm[2];
+					} else if ((p[0] == p_m1[0]) && (p[1] == p_m1[1])) {
+						immutable n4n = FVec3(
+							geom.x_nodes[n4] - geom.x_nodes[node_idx],
+							geom.y_nodes[n4] - geom.y_nodes[node_idx],
+							geom.z_nodes[n4] - geom.z_nodes[node_idx]
+						);
+
+						immutable n2n = FVec3(
+							geom.x_nodes[n2] - geom.x_nodes[node_idx],
+							geom.y_nodes[n2] - geom.y_nodes[node_idx],
+							geom.z_nodes[n2] - geom.z_nodes[node_idx]
+						);
+
+						immutable normal2 = n2n.cross(n4n).normalize;
+
+						// Average the 2 local face normals for the vert normal
+						immutable ave_norm = (normal2).normalize;
+						geom.x_normals[node_idx] = ave_norm[0];
+						geom.y_normals[node_idx] = ave_norm[1];
+						geom.z_normals[node_idx] = ave_norm[2];
+
+					} else {
+						immutable n1n = FVec3(
+							geom.x_nodes[n1] - geom.x_nodes[node_idx],
+							geom.y_nodes[n1] - geom.y_nodes[node_idx],
+							geom.z_nodes[n1] - geom.z_nodes[node_idx]
+						);
+
+						immutable n4n = FVec3(
+							geom.x_nodes[n4] - geom.x_nodes[node_idx],
+							geom.y_nodes[n4] - geom.y_nodes[node_idx],
+							geom.z_nodes[n4] - geom.z_nodes[node_idx]
+						);
+
+						immutable n2n = FVec3(
+							geom.x_nodes[n2] - geom.x_nodes[node_idx],
+							geom.y_nodes[n2] - geom.y_nodes[node_idx],
+							geom.z_nodes[n2] - geom.z_nodes[node_idx]
+						);
+
+						immutable normal1 = n4n.cross(n1n).normalize;
+						immutable normal2 = n2n.cross(n4n).normalize;
+
+						// Average the 2 local face normals for the vert normal
+						immutable ave_norm = (0.5*(normal1 + normal2)).normalize;
+						geom.x_normals[node_idx] = ave_norm[0];
+						geom.y_normals[node_idx] = ave_norm[1];
+						geom.z_normals[node_idx] = ave_norm[2];
+					}					
 				}
 			} else if(r_idx == radial_stations.length - 1) {
 				if(p_idx == 0) {
@@ -639,37 +684,82 @@ auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] 
 				} else {
 					// only use n1, n2, n3, and node_idx
 
-					immutable n1n = FVec3(
-						geom.x_nodes[n1] - geom.x_nodes[node_idx],
-						geom.y_nodes[n1] - geom.y_nodes[node_idx],
-						geom.z_nodes[n1] - geom.z_nodes[node_idx]
-					);
+					if ((p[0] == p_p1[0]) && (p[1] == p_p1[1])) {
+						immutable n1n = FVec3(
+							geom.x_nodes[n1] - geom.x_nodes[node_idx],
+							geom.y_nodes[n1] - geom.y_nodes[node_idx],
+							geom.z_nodes[n1] - geom.z_nodes[node_idx]
+						);
 
-					immutable n3n = FVec3(
-						geom.x_nodes[n3] - geom.x_nodes[node_idx],
-						geom.y_nodes[n3] - geom.y_nodes[node_idx],
-						geom.z_nodes[n3] - geom.z_nodes[node_idx]
-					);
+						immutable n3n = FVec3(
+							geom.x_nodes[n3] - geom.x_nodes[node_idx],
+							geom.y_nodes[n3] - geom.y_nodes[node_idx],
+							geom.z_nodes[n3] - geom.z_nodes[node_idx]
+						);
 
-					immutable n2n = FVec3(
-						geom.x_nodes[n2] - geom.x_nodes[node_idx],
-						geom.y_nodes[n2] - geom.y_nodes[node_idx],
-						geom.z_nodes[n2] - geom.z_nodes[node_idx]
-					);
+						immutable normal1 = n1n.cross(n3n).normalize;
 
-					immutable normal1 = n1n.cross(n3n).normalize;
-					immutable normal2 = n3n.cross(n2n).normalize;
+						// Average the 2 local face normals for the vert normal
+						immutable ave_norm = (normal1).normalize;
+						geom.x_normals[node_idx] = ave_norm[0];
+						geom.y_normals[node_idx] = ave_norm[1];
+						geom.z_normals[node_idx] = ave_norm[2];
 
-					// Average the 2 local face normals for the vert normal
-					immutable ave_norm = (0.5*(normal1 + normal2)).normalize;
-					geom.x_normals[node_idx] = ave_norm[0];
-					geom.y_normals[node_idx] = ave_norm[1];
-					geom.z_normals[node_idx] = ave_norm[2];
+					} else if ((p[0] == p_m1[0]) && (p[1] == p_m1[1])) {
+						immutable n3n = FVec3(
+							geom.x_nodes[n3] - geom.x_nodes[node_idx],
+							geom.y_nodes[n3] - geom.y_nodes[node_idx],
+							geom.z_nodes[n3] - geom.z_nodes[node_idx]
+						);	
+
+						immutable n2n = FVec3(
+							geom.x_nodes[n2] - geom.x_nodes[node_idx],
+							geom.y_nodes[n2] - geom.y_nodes[node_idx],
+							geom.z_nodes[n2] - geom.z_nodes[node_idx]
+						);
+
+						immutable normal2 = n3n.cross(n2n).normalize;
+
+						// Average the 2 local face normals for the vert normal
+						immutable ave_norm = (normal2).normalize;
+						geom.x_normals[node_idx] = ave_norm[0];
+						geom.y_normals[node_idx] = ave_norm[1];
+						geom.z_normals[node_idx] = ave_norm[2];
+
+					} else {
+						immutable n1n = FVec3(
+							geom.x_nodes[n1] - geom.x_nodes[node_idx],
+							geom.y_nodes[n1] - geom.y_nodes[node_idx],
+							geom.z_nodes[n1] - geom.z_nodes[node_idx]
+						);
+
+						immutable n3n = FVec3(
+							geom.x_nodes[n3] - geom.x_nodes[node_idx],
+							geom.y_nodes[n3] - geom.y_nodes[node_idx],
+							geom.z_nodes[n3] - geom.z_nodes[node_idx]
+						);	
+
+						immutable n2n = FVec3(
+							geom.x_nodes[n2] - geom.x_nodes[node_idx],
+							geom.y_nodes[n2] - geom.y_nodes[node_idx],
+							geom.z_nodes[n2] - geom.z_nodes[node_idx]
+						);
+
+						immutable normal1 = n1n.cross(n3n).normalize;
+						immutable normal2 = n3n.cross(n2n).normalize;
+
+						// Average the 2 local face normals for the vert normal
+						immutable ave_norm = (0.5*(normal1 + normal2)).normalize;
+						geom.x_normals[node_idx] = ave_norm[0];
+						geom.y_normals[node_idx] = ave_norm[1];
+						geom.z_normals[node_idx] = ave_norm[2];
+					}					
+									
 				}
 			} else {
 				if(p_idx == 0) {
 					// only use n2, n3, n4, and node_idx
-
+					
 					immutable n4n = FVec3(
 						geom.x_nodes[n4] - geom.x_nodes[node_idx],
 						geom.y_nodes[n4] - geom.y_nodes[node_idx],
@@ -727,47 +817,107 @@ auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] 
 					geom.z_normals[node_idx] = ave_norm[2];
 				} else {
 					// only use all
-					immutable n4n = FVec3(
-						geom.x_nodes[n4] - geom.x_nodes[node_idx],
-						geom.y_nodes[n4] - geom.y_nodes[node_idx],
-						geom.z_nodes[n4] - geom.z_nodes[node_idx]
-					);
 
-					immutable n3n = FVec3(
-						geom.x_nodes[n3] - geom.x_nodes[node_idx],
-						geom.y_nodes[n3] - geom.y_nodes[node_idx],
-						geom.z_nodes[n3] - geom.z_nodes[node_idx]
-					);
+					if ((p[0] == p_p1[0]) && (p[1] == p_p1[1])) {
+						immutable n4n = FVec3(
+							geom.x_nodes[n4] - geom.x_nodes[node_idx],
+							geom.y_nodes[n4] - geom.y_nodes[node_idx],
+							geom.z_nodes[n4] - geom.z_nodes[node_idx]
+						);	
 
-					immutable n2n = FVec3(
-						geom.x_nodes[n2] - geom.x_nodes[node_idx],
-						geom.y_nodes[n2] - geom.y_nodes[node_idx],
-						geom.z_nodes[n2] - geom.z_nodes[node_idx]
-					);
+						immutable n3n = FVec3(
+							geom.x_nodes[n3] - geom.x_nodes[node_idx],
+							geom.y_nodes[n3] - geom.y_nodes[node_idx],
+							geom.z_nodes[n3] - geom.z_nodes[node_idx]
+						);
 
-					immutable n1n = FVec3(
-						geom.x_nodes[n1] - geom.x_nodes[node_idx],
-						geom.y_nodes[n1] - geom.y_nodes[node_idx],
-						geom.z_nodes[n1] - geom.z_nodes[node_idx]
-					);
+						immutable n1n = FVec3(
+							geom.x_nodes[n1] - geom.x_nodes[node_idx],
+							geom.y_nodes[n1] - geom.y_nodes[node_idx],
+							geom.z_nodes[n1] - geom.z_nodes[node_idx]
+						);
 
-					immutable normal1 = n1n.cross(n3n).normalize;
-					immutable normal2 = n3n.cross(n2n).normalize;
-					immutable normal3 = n2n.cross(n4n).normalize;
-					immutable normal4 = n4n.cross(n1n).normalize;
+						immutable normal1 = n1n.cross(n3n).normalize;
+						immutable normal4 = n4n.cross(n1n).normalize;
 					
-					// Average the 4 local face normals for the vert normal
-					immutable ave_norm = (0.25*(normal1 + normal2 + normal3 + normal4)).normalize;
-					geom.x_normals[node_idx] = ave_norm[0];
-					geom.y_normals[node_idx] = ave_norm[1];
-					geom.z_normals[node_idx] = ave_norm[2];
+						// Average the 4 local face normals for the vert normal
+						immutable ave_norm = (0.5*(normal1 + normal4)).normalize;
+						geom.x_normals[node_idx] = ave_norm[0];
+						geom.y_normals[node_idx] = ave_norm[1];
+						geom.z_normals[node_idx] = ave_norm[2];
+
+					} else if ((p[0] == p_m1[0]) && (p[1] == p_m1[1])){
+						immutable n4n = FVec3(
+							geom.x_nodes[n4] - geom.x_nodes[node_idx],
+							geom.y_nodes[n4] - geom.y_nodes[node_idx],
+							geom.z_nodes[n4] - geom.z_nodes[node_idx]
+						);	
+
+						immutable n3n = FVec3(
+							geom.x_nodes[n3] - geom.x_nodes[node_idx],
+							geom.y_nodes[n3] - geom.y_nodes[node_idx],
+							geom.z_nodes[n3] - geom.z_nodes[node_idx]
+						);
+
+						immutable n2n = FVec3(
+							geom.x_nodes[n2] - geom.x_nodes[node_idx],
+							geom.y_nodes[n2] - geom.y_nodes[node_idx],
+							geom.z_nodes[n2] - geom.z_nodes[node_idx]
+						);
+						
+						immutable normal2 = n3n.cross(n2n).normalize;
+						immutable normal3 = n2n.cross(n4n).normalize;
+					
+						// Average the 4 local face normals for the vert normal
+						immutable ave_norm = (0.5*(normal2 + normal3)).normalize;
+						geom.x_normals[node_idx] = ave_norm[0];
+						geom.y_normals[node_idx] = ave_norm[1];
+						geom.z_normals[node_idx] = ave_norm[2];
+
+					}else{
+						immutable n4n = FVec3(
+							geom.x_nodes[n4] - geom.x_nodes[node_idx],
+							geom.y_nodes[n4] - geom.y_nodes[node_idx],
+							geom.z_nodes[n4] - geom.z_nodes[node_idx]
+						);	
+
+						immutable n3n = FVec3(
+							geom.x_nodes[n3] - geom.x_nodes[node_idx],
+							geom.y_nodes[n3] - geom.y_nodes[node_idx],
+							geom.z_nodes[n3] - geom.z_nodes[node_idx]
+						);
+
+						immutable n2n = FVec3(
+							geom.x_nodes[n2] - geom.x_nodes[node_idx],
+							geom.y_nodes[n2] - geom.y_nodes[node_idx],
+							geom.z_nodes[n2] - geom.z_nodes[node_idx]
+						);
+
+						immutable n1n = FVec3(
+							geom.x_nodes[n1] - geom.x_nodes[node_idx],
+							geom.y_nodes[n1] - geom.y_nodes[node_idx],
+							geom.z_nodes[n1] - geom.z_nodes[node_idx]
+						);
+
+						immutable normal1 = n1n.cross(n3n).normalize;
+						immutable normal2 = n3n.cross(n2n).normalize;
+						immutable normal3 = n2n.cross(n4n).normalize;
+						immutable normal4 = n4n.cross(n1n).normalize;
+					
+						// Average the 4 local face normals for the vert normal
+						immutable ave_norm = (0.25*(normal1 + normal2 + normal3 + normal4)).normalize;
+						geom.x_normals[node_idx] = ave_norm[0];
+						geom.y_normals[node_idx] = ave_norm[1];
+						geom.z_normals[node_idx] = ave_norm[2];
+					}
+
 				}
 			}
 
 			geom.x_normals[node_idx] = -geom.x_normals[node_idx];
 			geom.y_normals[node_idx] = -geom.y_normals[node_idx];
 			geom.z_normals[node_idx] = -geom.z_normals[node_idx];
-			
+
 			node_idx++;
 		}
 	}

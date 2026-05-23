@@ -113,6 +113,39 @@
 			"subConfigurations": {
 				"pyd": "python310"
 			}
+		},
+		{
+			"name": "library-python311",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python311"
+			}
+		},
+		{
+			"name": "library-python312",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python312"
+			}
+		},
+		{
+			"name": "library-python313",
+			"targetName": "wopwopd",
+			"targetType": "dynamicLibrary",
+			"postBuildCommands-osx": ["cp libwopwopd.dylib libwopwopd.so"],
+			"lflags": ["-L/opt/anaconda3/lib"],
+			"dependencies": {"pyd": {"path": "./dependencies/pyd"}},
+			"subConfigurations": {
+				"pyd": "python313"
+			}
 		}
 	],
     "buildTypes": {

@@ -6,4 +6,4 @@
 	url = ../mpid.git
 [submodule "dependencies/pyd"]
 	path = dependencies/pyd
-	url = ../../Rob-Rau/pyd.git
+	url = ../pyd.git

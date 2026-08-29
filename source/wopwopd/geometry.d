@@ -513,13 +513,13 @@ auto generate_simple_constant_blade_geom(double[2][] airfoil_xsection, double[] 
 
 	node_idx = 0;
 	foreach(p_idx, p; airfoil_xsection.retro.array) {
-		immutable p_p1 = airfoil_xsection.retro.array[p_idx+1];
-		immutable p_m1 = airfoil_xsection.retro.array[p_idx-1];
+		immutable p_p1 = airfoil_xsection.retro.array[(p_idx+1) % airfoil_xsection.length];
+		immutable p_m1 = airfoil_xsection.retro.array[(p_idx-1) % airfoil_xsection.length];
 		foreach(r_idx, rs; radial_stations) {
-			immutable n1 = (p_idx - 1)*radial_stations.length + r_idx;
-			immutable n2 = (p_idx + 1)*radial_stations.length + r_idx;
-			immutable n3 = node_idx - 1;
-			immutable n4 = node_idx + 1;
+			immutable n1 = ((p_idx - 1)*radial_stations.length + r_idx) % num_nodes;
+			immutable n2 = ((p_idx + 1)*radial_stations.length + r_idx) % num_nodes;
+			immutable n3 = (node_idx - 1) % num_nodes;
+			immutable n4 = (node_idx + 1) % num_nodes;
 
 			if(r_idx == 0) {
 				if(p_idx == 0) {

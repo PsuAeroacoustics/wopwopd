@@ -8,7 +8,9 @@
 		"numd": {"path": "./dependencies/numd"}
 	},
 	"lflags-posix": [
-		"-L/usr/local/lib",
+		"-L/usr/local/lib"
+	],
+	"lflags-linux": [
 		"-L$CONDA_PREFIX/lib"
 	],
 	"configurations": [

@@ -406,6 +406,9 @@ struct BWIIn {
 	OptionalFloatArray sectLength;
 	OptionalBPMFlagType UFlag;
 	OptionalFloatArray U;
+	OptionalFloat startFrequency;
+	OptionalFloat cutOffFrequency;
+	OptionalSize nFreq;
 }
 
 alias OptionalBPMIn = Nullable!BPMIn;
